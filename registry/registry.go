@@ -22,7 +22,7 @@ import (
 	ipfs "github.com/miguelmota/ipdr/ipfs"
 	netutil "github.com/miguelmota/ipdr/netutil"
 	regutil "github.com/miguelmota/ipdr/regutil"
-	"github.com/miguelmota/ipdr/server"
+	server "github.com/miguelmota/ipdr/server"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -164,7 +164,7 @@ func (r *Registry) DownloadImage(ipfsHash string) (string, error) {
 func (r *Registry) PullImage(ipfsHash string) (string, error) {
 	r.runServer()
 	dockerizedHash := regutil.DockerizeHash(ipfsHash)
-	dockerPullImageID := fmt.Sprintf("%s:%v/%s", r.dockerLocalRegistryHost, 5000, dockerizedHash)
+	dockerPullImageID := fmt.Sprintf("%s/%s", r.dockerLocalRegistryHost, dockerizedHash)
 
 	r.Debugf("[registry] attempting to pull %s", dockerPullImageID)
 	err := r.dockerClient.PullImage(dockerPullImageID)
@@ -204,6 +204,7 @@ func (r *Registry) runServer() {
 	resp, err := client.Get(url)
 	if err != nil || resp.StatusCode != 200 {
 		srv := server.NewServer(&server.Config{
+			Port:  netutil.ExtractPort(r.dockerLocalRegistryHost),
 			Debug: r.debug,
 		})
 		go srv.Start()

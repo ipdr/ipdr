@@ -1,6 +1,7 @@
 package netutil
 
 import (
+	"fmt"
 	"net"
 	"strconv"
 	"testing"
@@ -41,4 +42,25 @@ func TestLocalIP(t *testing.T) {
 	}
 
 	t.Log(ip)
+}
+
+func TestExtractPort(t *testing.T) {
+	for i, tt := range []struct {
+		in  string
+		out uint
+	}{
+		{"0.0.0.0:5000", 5000},
+		{":5000", 5000},
+		{"docker.localhost:5000", 5000},
+		{"a123.com:5000", 5000},
+		{"5000", 5000},
+		{"", 0},
+	} {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			got := ExtractPort(tt.in)
+			if got != tt.out {
+				t.Errorf("want %v, got %v", tt.out, got)
+			}
+		})
+	}
 }

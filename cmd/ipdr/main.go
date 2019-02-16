@@ -31,6 +31,8 @@ func main() {
 
 	var ipfsHost string
 	var format string
+	var dockerRegistryHost string
+	var port uint
 	var silent bool
 
 	rootCmd := &cobra.Command{
@@ -59,7 +61,7 @@ More info: https://github.com/miguelmota/ipdr`,
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			reg := registry.NewRegistry(&registry.Config{
-				DockerLocalRegistryHost: "5000",
+				DockerLocalRegistryHost: dockerRegistryHost,
 				IPFSHost:                ipfsHost,
 				Debug:                   !silent,
 			})
@@ -80,8 +82,9 @@ More info: https://github.com/miguelmota/ipdr`,
 		},
 	}
 
-	pushCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to push the image to. Example: 127.0.0.1:5001")
+	pushCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to push the image to. Eg. 127.0.0.1:5001")
 	pushCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs and outputs only IPFS hash")
+	pushCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
 
 	pullCmd := &cobra.Command{
 		Use:   "pull",
@@ -99,7 +102,7 @@ More info: https://github.com/miguelmota/ipdr`,
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			reg := registry.NewRegistry(&registry.Config{
-				DockerLocalRegistryHost: "docker.localhost",
+				DockerLocalRegistryHost: dockerRegistryHost,
 				Debug: !silent,
 			})
 
@@ -119,6 +122,7 @@ More info: https://github.com/miguelmota/ipdr`,
 	}
 
 	pullCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs and outputs only Docker repo tag")
+	pullCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
 
 	serverCmd := &cobra.Command{
 		Use:   "server",
@@ -126,6 +130,7 @@ More info: https://github.com/miguelmota/ipdr`,
 		Long:  "Start the Docker registry server that images stored on IPFS to Docker registry format",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			srv := server.NewServer(&server.Config{
+				Port:  port,
 				Debug: !silent,
 			})
 
@@ -134,6 +139,7 @@ More info: https://github.com/miguelmota/ipdr`,
 	}
 
 	serverCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs")
+	serverCmd.Flags().UintVarP(&port, "port", "p", 5000, "The port for the Docker registry to listen on")
 
 	convertCmd := &cobra.Command{
 		Use:   "convert",

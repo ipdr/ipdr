@@ -2,7 +2,10 @@ package netutil
 
 import (
 	"errors"
+	"fmt"
 	"net"
+	"regexp"
+	"strconv"
 )
 
 // GetFreePort asks the kernel for a free open port that is ready to use.
@@ -77,4 +80,18 @@ func isPrivateIP(ip net.IP) bool {
 	}
 
 	return false
+}
+
+// ExtractPort extracts the port from a host string
+func ExtractPort(host string) uint {
+	re := regexp.MustCompile(`(.*:)?(\d+)`)
+	matches := re.FindStringSubmatch(host)
+	fmt.Println(matches)
+	if len(matches) == 0 {
+		return 0
+	}
+	portStr := matches[len(matches)-1]
+	port, _ := strconv.ParseUint(portStr, 10, 64)
+
+	return uint(port)
 }

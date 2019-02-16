@@ -138,8 +138,14 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
     ```
 
 - You can also pull the image using `docker pull`:
+    - First run the IPDR server in a seperate terminal:
 
-    - First convert the IPFS hash to a valid format docker allows:
+        ```bash
+        $ ipdr server -p 5000
+        INFO[0000] [registry/server] listening on [::]:5000
+        ```
+
+    - Then convert the IPFS hash to a valid format docker allows:
 
         ```bash
         $ ipdr convert QmYMg6WAuvF5i5yFmjT8KkqewZ5Ngh4U9Mp1bGfdjraFVk --format=docker

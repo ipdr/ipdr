@@ -22,6 +22,7 @@ type Server struct {
 // Config is server config
 type Config struct {
 	Debug bool
+	Port  uint
 }
 
 // NewServer returns a new server instance
@@ -30,8 +31,13 @@ func NewServer(config *Config) *Server {
 		config = &Config{}
 	}
 
+	var port uint = 5000
+	if config.Port != 0 {
+		port = config.Port
+	}
+
 	return &Server{
-		host:  fmt.Sprintf("0.0.0.0:%v", 5000),
+		host:  fmt.Sprintf("0.0.0.0:%v", port),
 		debug: config.Debug,
 	}
 }
@@ -138,8 +144,7 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	port := s.listener.Addr().(*net.TCPAddr).Port
-	s.Debugf("[registry/server] port %v", port)
+	s.Debugf("[registry/server] listening on %s", s.listener.Addr())
 
 	return http.Serve(s.listener, nil)
 }
