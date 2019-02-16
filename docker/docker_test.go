@@ -13,27 +13,6 @@ var (
 	testImageTar = "hello-world.tar"
 )
 
-func init() {
-	createTestTar()
-}
-
-func createClient() *Client {
-	return NewClient(nil)
-}
-
-func createTestTar() {
-	client := createClient()
-	err := client.PullImage(testImage)
-	if err != nil {
-		panic(err)
-	}
-
-	err = client.SaveImageTar(testImage, "hello-world.tar")
-	if err != nil {
-		panic(err)
-	}
-}
-
 func TestNew(t *testing.T) {
 	client := createClient()
 	if client == nil {
@@ -178,4 +157,35 @@ func TestRemoveAllImages(t *testing.T) {
 	if len(images) != 0 {
 		t.Error("expected number of images to be 0")
 	}
+}
+
+// last function to run so it cleans up
+// the generated test files
+func TestCleanup(t *testing.T) {
+	cleanUp()
+}
+
+func createClient() *Client {
+	return NewClient(nil)
+}
+
+func createTestTar() {
+	client := createClient()
+	err := client.PullImage(testImage)
+	if err != nil {
+		panic(err)
+	}
+
+	err = client.SaveImageTar(testImage, testImageTar)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func cleanUp() {
+	os.Remove(testImageTar)
+}
+
+func init() {
+	createTestTar()
 }

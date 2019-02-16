@@ -206,6 +206,7 @@ func (c *Client) SaveImageTar(imageID string, dest string) error {
 	}
 
 	defer fo.Close()
+
 	io.Copy(fo, reader)
 	return nil
 }

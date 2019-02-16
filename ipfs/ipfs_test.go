@@ -5,13 +5,7 @@ import (
 	"testing"
 )
 
-func init() {
-	createDataDir()
-}
-
-func createDataDir() {
-	os.Mkdir("tmp_data", os.ModePerm)
-}
+var tmpDir = "tmp_data"
 
 func TestNewClient(t *testing.T) {
 	client := NewClient()
@@ -54,4 +48,22 @@ func TestGetIpfsGatewayPort(t *testing.T) {
 	if port != expected {
 		t.Fatalf("expected: %s; got: %s", expected, port)
 	}
+}
+
+// last function to run so it cleans up
+// the generated test files
+func TestCleanup(t *testing.T) {
+	cleanUp()
+}
+
+func createDataDir() {
+	os.Mkdir(tmpDir, os.ModePerm)
+}
+
+func cleanUp() {
+	os.Remove(tmpDir)
+}
+
+func init() {
+	createDataDir()
 }

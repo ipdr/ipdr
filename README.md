@@ -21,6 +21,7 @@
 
 - [Install](#install)
 - [Getting started](#getting-started)
+- [CLI](#cli)
 - [Test](#test)
 - [Contributing](#contributing)
 - [License](#license)
@@ -136,12 +137,12 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
     hello world
     ```
 
-- You can also pull the using `docker pull`:
+- You can also pull the image using `docker pull`:
 
     - First convert the IPFS hash to a valid format docker allows:
 
         ```bash
-        $ go run cmd/ipdr/main.go convert QmYMg6WAuvF5i5yFmjT8KkqewZ5Ngh4U9Mp1bGfdjraFVk --format=docker
+        $ ipdr convert QmYMg6WAuvF5i5yFmjT8KkqewZ5Ngh4U9Mp1bGfdjraFVk --format=docker
 
         ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
         ```
@@ -179,8 +180,30 @@ REPO_TAG=$(ipdr pull "$IPFS_HASH" --silent)
 docker run "$REPO_TAG"
 ```
 
+## CLI
 
+```bash
+$ ipdr --help
 
+The command-line interface for the InterPlanetary Docker Registry.
+More info: https://github.com/miguelmota/ipdr
+
+Usage:
+  ipdr [flags]
+  ipdr [command]
+
+Available Commands:
+  convert     Convert a hash to IPFS format or Docker registry format
+  help        Help about any command
+  pull        Pull image from the IPFS-backed Docker registry
+  push        Push image to IPFS-backed Docker registry
+  server      Start registry server
+
+Flags:
+  -h, --help   help for ipdr
+
+Use "ipdr [command] --help" for more information about a command.
+```
 
 ## Test
 
