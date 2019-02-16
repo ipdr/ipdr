@@ -1,8 +1,5 @@
-build:
-  main: ./cmd/ipdr/ipdr.go
-
 builds:
-  - binary: ipdr
+  - main: ./cmd/ipdr/main.go
     goos:
       - windows
       - darwin
