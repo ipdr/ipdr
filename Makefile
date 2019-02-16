@@ -6,8 +6,6 @@ test:
 .PHONY: test/install-deps
 test/install-deps:
 	set -x
-	# configure hosts
-	echo '127.0.0.1       docker.localhost' >> /etc/hosts
 	# install Docker
 	VER="18.03.1-ce"
 	curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz

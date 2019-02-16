@@ -7,3 +7,7 @@ go:
 script:
   - make test/install-deps
   - make test
+
+addons:
+  hosts:
+    - docker.localhost
