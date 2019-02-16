@@ -8,7 +8,7 @@ PROJECTNAME=$(shell basename "$(PWD)")
 install:
 	@go get $(get)
 
-DOCKER_VERSION="18.03.1-ce"
+DOCKER_VERSION=18.03.1-ce
 
 .PHONY: test/install-deps
 test/install-deps:
