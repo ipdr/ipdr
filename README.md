@@ -136,6 +136,33 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
     hello world
     ```
 
+- You can also pull the using `docker pull`:
+
+    - First convert the IPFS hash to a valid format docker allows:
+
+        ```bash
+        $ go run cmd/ipdr/main.go convert QmYMg6WAuvF5i5yFmjT8KkqewZ5Ngh4U9Mp1bGfdjraFVk --format=docker
+
+        ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
+        ```
+
+    - Now you can `docker pull` the image from IPFS:
+
+        ```bash
+        $ docker pull docker.localhost:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
+        Using default tag: latest
+        latest: Pulling from ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
+        Digest: sha256:6b787c9e04c2038d4b3cb0392417abdddfcfd88e10005d970fc751cdcfd6d895
+        Status: Downloaded newer image for docker.localhost:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y:latest
+        ```
+
+        Test run:
+
+        ```bash
+        $ docker run docker.localhost:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
+        hello world
+        ```
+
 ### TLDR; example
 
 ```bash
@@ -151,6 +178,8 @@ REPO_TAG=$(ipdr pull "$IPFS_HASH" --silent)
 # run image pulled from IPFS
 docker run "$REPO_TAG"
 ```
+
+
 
 
 ## Test
