@@ -1,0 +1,72 @@
+{
+  "author": "ipfs",
+  "bugs": {
+    "url": "https://github.com/ipfs/go-ipfs-api/issues"
+  },
+  "gx": {
+    "dvcsimport": "github.com/ipfs/go-ipfs-api"
+  },
+  "gxDependencies": [
+    {
+      "author": "whyrusleeping",
+      "hash": "QmRcFemyJ8JjkMhErTAapQqs411JxD6YQRbtCmwAfnGe24",
+      "name": "go-libp2p-pubsub",
+      "version": "0.1.1"
+    },
+    {
+      "author": "whyrusleeping",
+      "hash": "QmcZSzKEM5yDfpZbeEEZaVmaZ1zXm6JWTbrQZSB8hCVPzk",
+      "name": "go-libp2p-peer",
+      "version": "2.3.6"
+    },
+    {
+      "author": "multiformats",
+      "hash": "QmYmsdtJ3HsodkePE3eU3TsCaP2YvPZJ4LoXnNkDE5Tpt7",
+      "name": "go-multiaddr",
+      "version": "1.3.0"
+    },
+    {
+      "author": "multiformats",
+      "hash": "QmV6FjemM1K8oXjrvuq3wuVWWoU2TLDPmNnKrxHzY3v6Ai",
+      "name": "go-multiaddr-net",
+      "version": "1.6.3"
+    },
+    {
+      "author": "keks",
+      "hash": "QmSP88ryZkHSRn1fnngAaV2Vcn63WUJzAavnRM9CVdU1Ky",
+      "name": "go-ipfs-cmdkit",
+      "version": "1.1.3"
+    },
+    {
+      "author": "mitchellh",
+      "hash": "QmdcULN1WCzgoQmcCaUAmEhwcxHYsDrbZ2LvRJKCL8dMrK",
+      "name": "go-homedir",
+      "version": "1.0.0"
+    },
+    {
+      "author": "whyrusleeping",
+      "hash": "QmPdKqUcHGFdeSpvjVoaTRPPstGif9GBZb5Q56RVw9o69A",
+      "name": "go-ipfs-util",
+      "version": "1.2.8"
+    },
+    {
+      "author": "whyrusleeping",
+      "hash": "QmQine7gvHncNevKtG9QXxf3nXcwSj6aDDmMm52mHofEEp",
+      "name": "tar-utils",
+      "version": "0.0.3"
+    },
+    {
+      "author": "whyrusleeping",
+      "hash": "QmWne2EKHBvVpSTYuWuWch3D9KqAx78Te83UXWFKQDcksJ",
+      "name": "go-libp2p-metrics",
+      "version": "2.1.4"
+    }
+  ],
+  "gxVersion": "0.7.0",
+  "language": "go",
+  "license": "MIT",
+  "name": "go-ipfs-api",
+  "releaseCmd": "git commit -a -m \"gx publish $VERSION\"",
+  "version": "1.3.5"
+}
+
