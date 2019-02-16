@@ -53,13 +53,13 @@ lint: $(GOMETALINTER)
 ## build: Builds project into an executable binary.
 .PHONY: build
 build:
-	go build -o bin/ipdr cmd/ipdr/main.go
+	go build -o bin/ipdr cmd/ipdr/ipdr.go
 
 ## release: Release a new version. Runs `goreleaser internally.
 .PHONY: release
 release:
 	@rm -rf dist
-	goreleaser cmd/ipdr/main.go
+	goreleaser
 
 .PHONY: help
 help: Makefile
