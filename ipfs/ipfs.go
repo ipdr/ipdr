@@ -13,14 +13,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Client ...
+// Client is the client structure
 type Client struct {
 	client   *api.Shell
 	isRemote bool
 	host     string
 }
 
-// NewClient ...
+// NewClient returns a new IPFS client instance
 func NewClient() *Client {
 	err := RunDaemon()
 	if err != nil {
@@ -38,7 +38,7 @@ func NewClient() *Client {
 	}
 }
 
-// NewRemoteClient ...
+// NewRemoteClient returns a new IPFS shell client
 func NewRemoteClient(host string) *Client {
 	client := api.NewShell(host)
 	return &Client{
@@ -48,17 +48,17 @@ func NewRemoteClient(host string) *Client {
 	}
 }
 
-// Get ...
+// Get fetches the contents and outputs into a directory
 func (client *Client) Get(hash, outdir string) error {
 	return client.client.Get(hash, outdir)
 }
 
-// AddDir ...
+// AddDir adds a directory to IPFS
 func (client *Client) AddDir(dir string) (string, error) {
 	return client.client.AddDir(dir)
 }
 
-// Refs ...
+// Refs returns the refs of an IPFS hash
 func (client *Client) Refs(hash string, recursive bool) (<-chan string, error) {
 	if client.isRemote {
 		return client.remoteRefs(hash, recursive)
@@ -67,6 +67,7 @@ func (client *Client) Refs(hash string, recursive bool) (<-chan string, error) {
 	return client.client.Refs(hash, recursive)
 }
 
+// removeRefs returns refs using the IPFS API
 func (client *Client) remoteRefs(hash string, recursive bool) (<-chan string, error) {
 	url := fmt.Sprintf("http://%s/api/v0/refs?arg=%s&recursive=%v", client.host, hash, recursive)
 
@@ -96,7 +97,7 @@ func (client *Client) remoteRefs(hash string, recursive bool) (<-chan string, er
 	return out, nil
 }
 
-// RunDaemon ...
+// RunDaemon rusn the IPFS daemon
 func RunDaemon() error {
 	var err error
 	ready := make(chan bool)
@@ -113,8 +114,7 @@ func RunDaemon() error {
 	return nil
 }
 
-// hacky way to spawn daemon
-// TODO: improve
+// spawnIpfsDaemon spawns the IPFS daemon by issuing shell commands
 func spawnIpfsDaemon(ready chan bool) error {
 	out, err := exec.Command("pgrep", "ipfs").Output()
 	if err != nil || strings.TrimSpace(string(out)) == "" {
@@ -149,6 +149,7 @@ func GatewayURL() (string, error) {
 	return fmt.Sprintf("http://127.0.0.1:%s", port), nil
 }
 
+// getIpfsAPIURL returns the IPFS API base URL
 func getIpfsAPIURL() (string, error) {
 	out, err := exec.Command("ipfs", "config", "Addresses.API").Output()
 	if err != nil {
@@ -158,6 +159,7 @@ func getIpfsAPIURL() (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
+// getIpfsGatewayPort return the IPFS gateway port number
 func getIpfsGatewayPort() (string, error) {
 	out, err := exec.Command("ipfs", "config", "Addresses.Gateway").Output()
 	if err != nil {

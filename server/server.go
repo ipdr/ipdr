@@ -15,7 +15,7 @@ import (
 var listener net.Listener
 var serverHost = fmt.Sprintf("0.0.0.0:%v", 5000)
 
-// Run ...
+// Run runs the registry server
 func Run() error {
 	//  already listening
 	if listener != nil {
@@ -31,7 +31,7 @@ func Run() error {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		uri := r.RequestURI
-		log.Printf("[registry] %s", uri)
+		log.Printf("[registry/server] %s", uri)
 
 		if uri == "/v2/" {
 			jsonstr := []byte(fmt.Sprintf(`{"what": "a registry", "gateway":%q, "handles": [%q, %q], "problematic": ["version 1 registries"], "project": "https://github.com/miguelmota/ipdr"}`, gw, contentTypes["manifestListV2Schema"], contentTypes["manifestV2Schema"]))
@@ -77,7 +77,7 @@ func Run() error {
 			// manifest request
 			location = location + suffix
 		}
-		log.Printf("[registry] location %s", location)
+		log.Printf("[registry/server] location %s", location)
 
 		req, err := http.NewRequest("GET", location, nil)
 		if err != nil {
@@ -113,18 +113,19 @@ func Run() error {
 	}
 
 	port := listener.Addr().(*net.TCPAddr).Port
-	log.Printf("[registry] port %v", port)
+	log.Printf("[registry/server] port %v", port)
 
 	return http.Serve(listener, nil)
 }
 
-// Close ...
+// Close stops the server
 func Close() {
 	if listener != nil {
 		listener.Close()
 	}
 }
 
+// ipfsURL returns the full IPFS url
 func ipfsURL(hash string) string {
 	url, err := ipfs.GatewayURL()
 	if err != nil {

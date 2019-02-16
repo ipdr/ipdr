@@ -66,7 +66,7 @@ func TestPushImage(t *testing.T) {
 func TestPushImageByID(t *testing.T) {
 	t.Skip()
 	client := docker.NewClient()
-	err := client.LoadImageByFilepath(testImageTar)
+	err := client.LoadImageByFilePath(testImageTar)
 	if err != nil {
 		t.Error(err)
 	}

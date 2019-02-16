@@ -9,9 +9,9 @@ import (
 func GetFreePort() (int, error) {
 	ip, err := LocalIP()
 	if err != nil {
-    return 0, err
+		return 0, err
 	}
-	addr, err := net.ResolveTCPAddr("tcp", ip.String() + ":0")
+	addr, err := net.ResolveTCPAddr("tcp", ip.String()+":0")
 	if err != nil {
 		return 0, err
 	}
@@ -54,6 +54,7 @@ func LocalIP() (net.IP, error) {
 	return nil, errors.New("no IP")
 }
 
+// isPrivateIP return true if IP address is from a private range
 func isPrivateIP(ip net.IP) bool {
 	var privateIPBlocks []*net.IPNet
 	for _, cidr := range []string{

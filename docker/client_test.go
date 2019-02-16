@@ -103,9 +103,9 @@ func TestLoadImage(t *testing.T) {
 	}
 }
 
-func TestLoadImageByFilepath(t *testing.T) {
+func TestLoadImageByFilePath(t *testing.T) {
 	client := NewClient()
-	err := client.LoadImageByFilepath(testImageTar)
+	err := client.LoadImageByFilePath(testImageTar)
 	if err != nil {
 		t.Error(err)
 	}
@@ -173,104 +173,5 @@ func TestRemoveAllImages(t *testing.T) {
 
 	if len(images) != 0 {
 		t.Error("expected number of images to be 0")
-	}
-}
-
-func TestCreateContainer(t *testing.T) {
-	client := NewClient()
-	err := client.PullImage(testImage)
-	if err != nil {
-		t.Error(err)
-	}
-	containerID, err := client.CreateContainer(testImage, []string{}, nil)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if containerID == "" {
-		t.Error("expected container ID")
-	}
-}
-
-func TestStopContainer(t *testing.T) {
-	client := NewClient()
-	err := client.PullImage(testImage)
-	if err != nil {
-		t.Error(err)
-	}
-	containerID, err := client.CreateContainer(testImage, []string{}, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	err = client.StopContainer(containerID)
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = client.StopContainer(containerID)
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestInspectContainer(t *testing.T) {
-	client := NewClient()
-	err := client.PullImage(testImage)
-	if err != nil {
-		t.Error(err)
-	}
-	containerID, err := client.CreateContainer(testImage, []string{}, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	err = client.StopContainer(containerID)
-	if err != nil {
-		t.Error(err)
-	}
-	info, err := client.InspectContainer(containerID)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if info.ID != containerID {
-		t.Error("expected id to match")
-	}
-
-	err = client.StopContainer(containerID)
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestCommitContainer(t *testing.T) {
-	client := NewClient()
-	err := client.PullImage(testImage)
-	if err != nil {
-		t.Error(err)
-	}
-	containerID, err := client.CreateContainer(testImage, []string{}, nil)
-	if err != nil {
-		t.Error(err)
-	}
-
-	commitedImageID, err := client.CommitContainer(containerID)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if commitedImageID == "" {
-		t.Error("expected commited image ID")
-	}
-
-	err = client.StopContainer(containerID)
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestDockerVersionFromCLI(t *testing.T) {
-	version := dockerVersionFromCLI()
-	if version == "" {
-		t.Error("expected version to not be empty")
 	}
 }

@@ -24,19 +24,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Registry ...
+// Registry is the registry structure
 type Registry struct {
 	dockerLocalRegistryHost string
 	ipfsClient              *ipfs.Client
 }
 
-// Config ...
+// Config is the config for the registry
 type Config struct {
 	DockerLocalRegistryHost string
 	IPFSHost                string
 }
 
-// NewRegistry ...
+// NewRegistry returns a new registry client instance
 func NewRegistry(config *Config) *Registry {
 	dockerLocalRegistryHost := config.DockerLocalRegistryHost
 	if dockerLocalRegistryHost == "" {
@@ -64,7 +64,7 @@ func NewRegistry(config *Config) *Registry {
 	}
 }
 
-// PushImageByID uploads Docker image by image ID (hash or repo tag) to IPFS
+// PushImageByID uploads Docker image by image ID, which is hash or repo tag, to IPFS
 func (registry *Registry) PushImageByID(imageID string) (string, error) {
 	// normalize image ID
 	imageID, err := registry.TagToImageID(imageID)
@@ -103,7 +103,7 @@ func (registry *Registry) TagToImageID(imageID string) (string, error) {
 	return imageID, nil
 }
 
-// PushImage uploads Docker image to IPFS
+// PushImage uploads the Docker image to IPFS
 func (registry *Registry) PushImage(reader io.Reader) (string, error) {
 	tmp, err := mktmp()
 	if err != nil {
@@ -134,7 +134,7 @@ func (registry *Registry) PushImage(reader io.Reader) (string, error) {
 	return imageIpfsHash, nil
 }
 
-// DownloadImage download Docker image from IPFS
+// DownloadImage downloads the Docker image from IPFS
 func (registry *Registry) DownloadImage(ipfsHash string) (string, error) {
 	tmp, err := mktmp()
 	if err != nil {
@@ -150,7 +150,7 @@ func (registry *Registry) DownloadImage(ipfsHash string) (string, error) {
 	return path, nil
 }
 
-// PullImage pull Docker image from IPFS
+// PullImage pulls the Docker image from IPFS
 func (registry *Registry) PullImage(ipfsHash string) (string, error) {
 	go server.Run()
 	client := docker.NewClient()
@@ -182,6 +182,7 @@ func (registry *Registry) PullImage(ipfsHash string) (string, error) {
 	return dockerizedHash, nil
 }
 
+// mktmp creates a temporary directory
 func mktmp() (string, error) {
 	tmp, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -191,6 +192,7 @@ func mktmp() (string, error) {
 	return tmp, err
 }
 
+// ipfsPrep formats the image data into a registry compatible format
 func ipfsPrep(tmp string) (string, error) {
 	root, err := mktmp()
 	if err != nil {
@@ -263,6 +265,7 @@ func ipfsPrep(tmp string) (string, error) {
 	return root, nil
 }
 
+// uploadDir uploads the directory to IPFS
 func (registry *Registry) uploadDir(root string) (string, error) {
 	hash, err := registry.ipfsClient.AddDir(root)
 	if err != nil {
@@ -295,6 +298,7 @@ func (registry *Registry) uploadDir(root string) (string, error) {
 	return "", errors.New("could not upload")
 }
 
+// ipfsShellCmd executes an IPFS command via the shell
 func ipfsShellCmd(cmdStr string) (string, string, error) {
 	path, err := exec.LookPath("ipfs")
 	if err != nil {
@@ -325,6 +329,7 @@ func ipfsShellCmd(cmdStr string) (string, string, error) {
 	return outstr, errstr, nil
 }
 
+// copyio is a helper to copy IO readers
 func copyio(out io.Reader, in io.Writer) error {
 	_, err := io.Copy(in, out)
 	if err != nil {
@@ -334,6 +339,7 @@ func copyio(out io.Reader, in io.Writer) error {
 	return nil
 }
 
+// writeJSON writes an interface to a JSON file
 func writeJSON(idate interface{}, path string) error {
 	data, err := json.Marshal(idate)
 	if err != nil {
@@ -369,6 +375,7 @@ func makeV2Manifest(manifest map[string]interface{}, configFile, configDest, tmp
 	return v2manifest, nil
 }
 
+// mergemap merges two maps
 func mergemap(a, b map[string]interface{}) map[string]interface{} {
 	for k, v := range b {
 		a[k] = v
@@ -376,6 +383,7 @@ func mergemap(a, b map[string]interface{}) map[string]interface{} {
 	return a
 }
 
+// prepareV2Manifest preps the docker image into a docker registry V2 manifest format
 func prepareV2Manifest(mf map[string]interface{}, tmp, blobDir string) (map[string]interface{}, error) {
 	res := make(map[string]interface{})
 	res["schemaVersion"] = 2
@@ -407,6 +415,7 @@ func prepareV2Manifest(mf map[string]interface{}, tmp, blobDir string) (map[stri
 	return res, nil
 }
 
+// compressLayer returns the sha256 hash of a directory
 func compressLayer(path, blobDir string) (int64, string, error) {
 	log.Printf("[registry] compressing layer: %s", path)
 	tmp := blobDir + "/layer.tmp.tgz"
@@ -434,6 +443,7 @@ func compressLayer(path, blobDir string) (int64, string, error) {
 	return size, digest, nil
 }
 
+// gzipFile gzips a file into a destination file
 func gzipFile(src, dst string) error {
 	data, _ := ioutil.ReadFile(src)
 	var b bytes.Buffer
@@ -444,6 +454,7 @@ func gzipFile(src, dst string) error {
 	return ioutil.WriteFile(dst, b.Bytes(), os.ModePerm)
 }
 
+// fileSize returns the size of the file
 func fileSize(path string) (int64, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
@@ -453,6 +464,7 @@ func fileSize(path string) (int64, error) {
 	return fi.Size(), nil
 }
 
+// sha256 returns the sha256 hash of a file
 func sha256File(path string) (string, error) {
 	// TODO: stream instead of reading whole image in memory
 	f, err := os.Open(path)
@@ -469,6 +481,7 @@ func sha256File(path string) (string, error) {
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
+// renameFile renames a file
 func renameFile(src, dst string) error {
 	if err := os.Rename(src, dst); err != nil {
 		return err
@@ -477,6 +490,7 @@ func renameFile(src, dst string) error {
 	return nil
 }
 
+// mkdir creates a directory if it doesn't exist
 func mkdir(path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.Mkdir(path, os.ModePerm)
@@ -491,6 +505,7 @@ func copyFile(src, dst string) error {
 	return ioutil.WriteFile(dst, data, 0644)
 }
 
+// untar untars a reader into a destination directory
 func untar(reader io.Reader, dst string) error {
 	tr := tar.NewReader(reader)
 
@@ -532,6 +547,7 @@ func untar(reader io.Reader, dst string) error {
 	}
 }
 
+// readJSON reads a file into a map structure
 func readJSON(filepath string) (map[string]map[string]string, error) {
 	body, _ := ioutil.ReadFile(filepath)
 	var data map[string]map[string]string
@@ -543,6 +559,7 @@ func readJSON(filepath string) (map[string]map[string]string, error) {
 	return data, nil
 }
 
+// readJSONArray reads a file into an array of map structures
 func readJSONArray(filepath string) ([]map[string]interface{}, error) {
 	body, _ := ioutil.ReadFile(filepath)
 	var data []map[string]interface{}
@@ -554,6 +571,7 @@ func readJSONArray(filepath string) ([]map[string]interface{}, error) {
 	return data, nil
 }
 
+// normalizeImageName normalizes an image name
 func normalizeImageName(name string) string {
 	// TODO
 	return name

@@ -13,12 +13,10 @@ import (
 var green = color.New(color.FgGreen)
 
 var (
-	// ErrImageIDRequired ...
+	// ErrImageIDRequired is error for when image ID is required
 	ErrImageIDRequired = errors.New("image hash or name is required")
-	// ErrOnlyOneArgumentRequired ...
+	// ErrOnlyOneArgumentRequired is error for when one argument only is required
 	ErrOnlyOneArgumentRequired = errors.New("only one argument is required")
-	// ErrSubCommandRequired ...
-	ErrSubCommandRequired = errors.New("sub command is required")
 )
 
 func main() {
