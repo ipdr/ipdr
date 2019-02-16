@@ -133,7 +133,6 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
 
     ```bash
     $ docker run docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
-
     hello world
     ```
 
