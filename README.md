@@ -60,19 +60,19 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
     127.0.0.1       docker.localhost
     ```
 
-    Flush local DNS cache:
+    - Flush local DNS cache:
 
-      on macOS:
+      - on macOS:
 
-      ```bash
-      dscacheutil -flushcache; sudo killall -HUP mDNSResponder
-      ```
+          ```bash
+          dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+          ```
 
-      on Ubuntu 18+:
+      - on Ubuntu 18+:
 
-      ```bash
-      sudo systemd-resolve --flush-caches
-      ```
+          ```bash
+          sudo systemd-resolve --flush-caches
+          ```
 
 ### Example flow
 
