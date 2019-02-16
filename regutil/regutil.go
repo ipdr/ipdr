@@ -15,8 +15,14 @@ func DockerizeHash(base58Hash string) string {
 	base58Hash = matches[len(matches)-1]
 	decodedB58 := base58.Decode(base58Hash)
 	b32str := base32.StdEncoding.EncodeToString(decodedB58)
+
+	end := len(b32str)
+	if end > 0 {
+		end = end - 1
+	}
+
 	// remove padding
-	return strings.ToLower(b32str[0 : len(b32str)-1])
+	return strings.ToLower(b32str[0:end])
 }
 
 // IpfsifyHash does base32 to base58 conversion

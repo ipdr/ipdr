@@ -7,6 +7,7 @@ import (
 
 	color "github.com/fatih/color"
 	registry "github.com/miguelmota/ipdr/registry"
+	regutil "github.com/miguelmota/ipdr/regutil"
 	"github.com/miguelmota/ipdr/server"
 	log "github.com/sirupsen/logrus"
 	cobra "github.com/spf13/cobra"
@@ -19,6 +20,8 @@ var (
 	ErrImageIDRequired = errors.New("image hash or name is required")
 	// ErrOnlyOneArgumentRequired is error for when one argument only is required
 	ErrOnlyOneArgumentRequired = errors.New("only one argument is required")
+	// ErrInvalidConvertFormat is error for when convert format is invalid
+	ErrInvalidConvertFormat = errors.New("convert format must be either \"docker\" or \"ipfs\"")
 )
 
 func main() {
@@ -27,6 +30,7 @@ func main() {
 	}
 
 	var ipfsHost string
+	var format string
 	var silent bool
 
 	rootCmd := &cobra.Command{
@@ -131,10 +135,45 @@ More info: https://github.com/miguelmota/ipdr`,
 
 	serverCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs")
 
+	convertCmd := &cobra.Command{
+		Use:   "convert",
+		Short: "Convert a hash to IPFS format or Docker registry format",
+		Long:  "Convert a hash to a multihash IPFS format or to a format that the Docker registry understands",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return ErrOnlyOneArgumentRequired
+			}
+
+			if !(format == "docker" || format == "ipfs") {
+				return ErrInvalidConvertFormat
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if format == "docker" {
+				ipfsHash := args[0]
+				dockerizedHash := regutil.DockerizeHash(ipfsHash)
+				fmt.Println(dockerizedHash)
+			} else if format == "ipfs" {
+				dockerizedHash := args[0]
+				ipfsHash := regutil.IpfsifyHash(dockerizedHash)
+				fmt.Println(ipfsHash)
+			} else {
+				return ErrInvalidConvertFormat
+			}
+
+			return nil
+		},
+	}
+
+	convertCmd.Flags().StringVarP(&format, "format", "f", "", "Output format which can be \"docker\" or \"ipfs\"")
+
 	rootCmd.AddCommand(
 		pushCmd,
 		pullCmd,
 		serverCmd,
+		convertCmd,
 	)
 
 	if err := rootCmd.Execute(); err != nil {

@@ -59,7 +59,7 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
     127.0.0.1       docker.localhost
     ```
 
-    Flush DNS cache:
+    Flush local DNS cache:
 
     on macOS:
 
