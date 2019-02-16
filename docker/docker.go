@@ -17,15 +17,21 @@ import (
 // Client is client structure
 type Client struct {
 	client *client.Client
+	debug  bool
+}
+
+// Config is client config
+type Config struct {
+	Debug bool
 }
 
 // NewClient creates a new client instance
-func NewClient() *Client {
-	return newEnvClient()
+func NewClient(config *Config) *Client {
+	return newEnvClient(config)
 }
 
 // newEnvClient returns a new client instance based on environment variables
-func newEnvClient() *Client {
+func newEnvClient(config *Config) *Client {
 	cl, err := client.NewEnvClient()
 	if err != nil {
 		log.Fatalf("[docker] %s", err)
@@ -33,6 +39,7 @@ func newEnvClient() *Client {
 
 	return &Client{
 		client: cl,
+		debug:  config.Debug,
 	}
 }
 
@@ -44,8 +51,8 @@ type ImageSummary struct {
 }
 
 // ListImages return list of docker images
-func (s *Client) ListImages() ([]*ImageSummary, error) {
-	images, err := s.client.ImageList(context.Background(), types.ImageListOptions{
+func (c *Client) ListImages() ([]*ImageSummary, error) {
+	images, err := c.client.ImageList(context.Background(), types.ImageListOptions{
 		All: true,
 	})
 	if err != nil {
@@ -65,10 +72,10 @@ func (s *Client) ListImages() ([]*ImageSummary, error) {
 }
 
 // HasImage returns true if image ID is available locally
-func (s *Client) HasImage(imageID string) (bool, error) {
+func (c *Client) HasImage(imageID string) (bool, error) {
 	args := filters.NewArgs()
 	args.Add("reference", StripImageTagHost(imageID))
-	images, err := s.client.ImageList(context.Background(), types.ImageListOptions{
+	images, err := c.client.ImageList(context.Background(), types.ImageListOptions{
 		All:     true,
 		Filters: args,
 	})
@@ -84,37 +91,45 @@ func (s *Client) HasImage(imageID string) (bool, error) {
 }
 
 // PullImage pulls a docker image
-func (s *Client) PullImage(imageID string) error {
-	reader, err := s.client.ImagePull(context.Background(), imageID, types.ImagePullOptions{})
+func (c *Client) PullImage(imageID string) error {
+	reader, err := c.client.ImagePull(context.Background(), imageID, types.ImagePullOptions{})
 	if err != nil {
+		fmt.Errorf("[docker] error pulling image: %v", err)
 		return err
 	}
 
-	io.Copy(os.Stdout, reader)
+	if c.debug {
+		io.Copy(os.Stdout, reader)
+	}
+
 	return nil
 }
 
 // PushImage pushes a docker image
-func (s *Client) PushImage(imageID string) error {
-	reader, err := s.client.ImagePush(context.Background(), imageID, types.ImagePushOptions{
+func (c *Client) PushImage(imageID string) error {
+	reader, err := c.client.ImagePush(context.Background(), imageID, types.ImagePushOptions{
 		// NOTE: if no auth, then any value is required
 		RegistryAuth: "123",
 	})
 	if err != nil {
 		return err
 	}
-	io.Copy(os.Stdout, reader)
+
+	if c.debug {
+		io.Copy(os.Stdout, reader)
+	}
+
 	return nil
 }
 
 // TagImage tags an image
-func (s *Client) TagImage(imageID, tag string) error {
-	return s.client.ImageTag(context.Background(), imageID, tag)
+func (c *Client) TagImage(imageID, tag string) error {
+	return c.client.ImageTag(context.Background(), imageID, tag)
 }
 
 // RemoveImage remove an image from the local registry
-func (s *Client) RemoveImage(imageID string) error {
-	_, err := s.client.ImageRemove(context.Background(), imageID, types.ImageRemoveOptions{
+func (c *Client) RemoveImage(imageID string) error {
+	_, err := c.client.ImageRemove(context.Background(), imageID, types.ImageRemoveOptions{
 		Force:         true,
 		PruneChildren: true,
 	})
@@ -123,22 +138,22 @@ func (s *Client) RemoveImage(imageID string) error {
 }
 
 // RemoveAllImages removes all images from the local registry
-func (s *Client) RemoveAllImages() error {
-	images, err := s.ListImages()
+func (c *Client) RemoveAllImages() error {
+	images, err := c.ListImages()
 	if err != nil {
 		return err
 	}
 
 	var lastErr error
 	for _, image := range images {
-		err := s.RemoveImage(image.ID)
+		err := c.RemoveImage(image.ID)
 		if err != nil {
 			lastErr = err
 			continue
 		}
 	}
 
-	images, err = s.ListImages()
+	images, err = c.ListImages()
 	if err != nil {
 		return err
 	}
@@ -151,36 +166,36 @@ func (s *Client) RemoveAllImages() error {
 }
 
 // ReadImage reads the contents of an image into an IO reader
-func (s *Client) ReadImage(imageID string) (io.Reader, error) {
-	return s.client.ImageSave(context.Background(), []string{imageID})
+func (c *Client) ReadImage(imageID string) (io.Reader, error) {
+	return c.client.ImageSave(context.Background(), []string{imageID})
 }
 
 // LoadImage loads an image from an IO reader
-func (s *Client) LoadImage(input io.Reader) error {
-	output, err := s.client.ImageLoad(context.Background(), input, false)
+func (c *Client) LoadImage(input io.Reader) error {
+	output, err := c.client.ImageLoad(context.Background(), input, false)
 	if err != nil {
 		return err
 	}
 
 	body, err := ioutil.ReadAll(output.Body)
-	fmt.Println(string(body))
+	c.Debugf("%s", string(body))
 
 	return err
 }
 
 // LoadImageByFilePath loads an image from a tarball
-func (s *Client) LoadImageByFilePath(filepath string) error {
+func (c *Client) LoadImageByFilePath(filepath string) error {
 	input, err := os.Open(filepath)
 	if err != nil {
-		log.Printf("[docker] load image by filepath error; %v", err)
+		log.Errorf("[docker] load image by filepath error; %v", err)
 		return err
 	}
-	return s.LoadImage(input)
+	return c.LoadImage(input)
 }
 
 // SaveImageTar saves an image into a tarball
-func (s *Client) SaveImageTar(imageID string, dest string) error {
-	reader, err := s.ReadImage(imageID)
+func (c *Client) SaveImageTar(imageID string, dest string) error {
+	reader, err := c.ReadImage(imageID)
 
 	fo, err := os.Create(dest)
 	if err != nil {
@@ -190,4 +205,11 @@ func (s *Client) SaveImageTar(imageID string, dest string) error {
 	defer fo.Close()
 	io.Copy(fo, reader)
 	return nil
+}
+
+// Debugf prints debug log
+func (c *Client) Debugf(str string, args ...interface{}) {
+	if c.debug {
+		log.Printf(str, args...)
+	}
 }

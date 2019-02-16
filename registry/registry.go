@@ -11,29 +11,34 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	docker "github.com/miguelmota/ipdr/docker"
 	ipfs "github.com/miguelmota/ipdr/ipfs"
 	netutil "github.com/miguelmota/ipdr/netutil"
 	regutil "github.com/miguelmota/ipdr/regutil"
-	server "github.com/miguelmota/ipdr/server"
+	"github.com/miguelmota/ipdr/server"
 	log "github.com/sirupsen/logrus"
 )
 
 // Registry is the registry structure
 type Registry struct {
 	dockerLocalRegistryHost string
+	dockerClient            *docker.Client
 	ipfsClient              *ipfs.Client
+	debug                   bool
 }
 
 // Config is the config for the registry
 type Config struct {
 	DockerLocalRegistryHost string
 	IPFSHost                string
+	Debug                   bool
 }
 
 // NewRegistry returns a new registry client instance
@@ -57,34 +62,37 @@ func NewRegistry(config *Config) *Registry {
 	}
 
 	ipfsClient := ipfs.NewRemoteClient(ipfsHost)
+	dockerClient := docker.NewClient(&docker.Config{
+		Debug: config.Debug,
+	})
 
 	return &Registry{
 		dockerLocalRegistryHost: dockerLocalRegistryHost,
 		ipfsClient:              ipfsClient,
+		dockerClient:            dockerClient,
+		debug:                   config.Debug,
 	}
 }
 
 // PushImageByID uploads Docker image by image ID, which is hash or repo tag, to IPFS
-func (registry *Registry) PushImageByID(imageID string) (string, error) {
+func (r *Registry) PushImageByID(imageID string) (string, error) {
 	// normalize image ID
-	imageID, err := registry.TagToImageID(imageID)
+	imageID, err := r.TagToImageID(imageID)
 	if err != nil {
 		return "", err
 	}
 
-	client := docker.NewClient()
-	reader, err := client.ReadImage(imageID)
+	reader, err := r.dockerClient.ReadImage(imageID)
 	if err != nil {
 		return "", err
 	}
 
-	return registry.PushImage(reader)
+	return r.PushImage(reader)
 }
 
 // TagToImageID returns the image ID given a repo tag
-func (registry *Registry) TagToImageID(imageID string) (string, error) {
-	client := docker.NewClient()
-	images, err := client.ListImages()
+func (r *Registry) TagToImageID(imageID string) (string, error) {
+	images, err := r.dockerClient.ListImages()
 	if err != nil {
 		return "", err
 	}
@@ -104,45 +112,43 @@ func (registry *Registry) TagToImageID(imageID string) (string, error) {
 }
 
 // PushImage uploads the Docker image to IPFS
-func (registry *Registry) PushImage(reader io.Reader) (string, error) {
+func (r *Registry) PushImage(reader io.Reader) (string, error) {
 	tmp, err := mktmp()
 	if err != nil {
 		return "", err
 	}
 
-	log.Printf("[registry] temp: %s", tmp)
-
+	r.Debugf("[registry] temp: %s", tmp)
 	if err := untar(reader, tmp); err != nil {
 		return "", err
 	}
 
-	root, err := ipfsPrep(tmp)
+	root, err := r.ipfsPrep(tmp)
 	if err != nil {
 		return "", err
 	}
 
-	log.Printf("[registry] root dir: %s", root)
-
-	imageIpfsHash, err := registry.uploadDir(root)
+	r.Debugf("[registry] root dir: %s", root)
+	imageIpfsHash, err := r.uploadDir(root)
 	if err != nil {
 		return "", err
 	}
 
-	log.Printf("\n[registry] uploaded to /ipfs/%s\n", imageIpfsHash)
-	log.Printf("[registry] docker image %s\n", regutil.DockerizeHash(imageIpfsHash))
+	r.Debugf("\n[registry] uploaded to /ipfs/%s\n", imageIpfsHash)
+	r.Debugf("[registry] docker image %s\n", regutil.DockerizeHash(imageIpfsHash))
 
 	return imageIpfsHash, nil
 }
 
 // DownloadImage downloads the Docker image from IPFS
-func (registry *Registry) DownloadImage(ipfsHash string) (string, error) {
+func (r *Registry) DownloadImage(ipfsHash string) (string, error) {
 	tmp, err := mktmp()
 	if err != nil {
 		return "", err
 	}
 
 	path := fmt.Sprintf("%s/%s.tar", tmp, ipfsHash)
-	err = registry.ipfsClient.Get(ipfsHash, path)
+	err = r.ipfsClient.Get(ipfsHash, path)
 	if err != nil {
 		return "", err
 	}
@@ -151,56 +157,64 @@ func (registry *Registry) DownloadImage(ipfsHash string) (string, error) {
 }
 
 // PullImage pulls the Docker image from IPFS
-func (registry *Registry) PullImage(ipfsHash string) (string, error) {
-	go server.Run()
-	client := docker.NewClient()
-
+func (r *Registry) PullImage(ipfsHash string) (string, error) {
+	r.runServer()
 	dockerizedHash := regutil.DockerizeHash(ipfsHash)
-	dockerPullImageID := fmt.Sprintf("%s:%v/%s", registry.dockerLocalRegistryHost, 5000, dockerizedHash)
+	dockerPullImageID := fmt.Sprintf("%s:%v/%s", r.dockerLocalRegistryHost, 5000, dockerizedHash)
 
-	log.Printf("[registry] attempting to pull %s", dockerPullImageID)
-	err := client.PullImage(dockerPullImageID)
+	r.Debugf("[registry] attempting to pull %s", dockerPullImageID)
+	err := r.dockerClient.PullImage(dockerPullImageID)
 	if err != nil {
-		log.Printf("[registry] error pulling image %s; %v", dockerPullImageID, err)
+		log.Errorf("[registry] error pulling image %s; %v", dockerPullImageID, err)
 		return "", err
 	}
 
-	err = client.TagImage(dockerPullImageID, dockerizedHash)
-	if err != nil {
-		log.Printf("[registry] error tagging image %s; %v", dockerizedHash, err)
-		return "", err
-	}
-
-	log.Printf("[registry] tagged image as %s", dockerizedHash)
-
-	err = client.RemoveImage(dockerPullImageID)
-	if err != nil {
-		log.Printf("[registry] error removing image %s; %v", dockerPullImageID, err)
-		return "", err
-	}
-
-	return dockerizedHash, nil
+	return dockerPullImageID, nil
 }
 
-// mktmp creates a temporary directory
-func mktmp() (string, error) {
-	tmp, err := ioutil.TempDir("", "")
+// retag retags an image
+func (r *Registry) retag(dockerPullImageID, dockerizedHash string) error {
+	err := r.dockerClient.TagImage(dockerPullImageID, dockerizedHash)
 	if err != nil {
-		return "", err
+		log.Errorf("[registry] error tagging image %s; %v", dockerizedHash, err)
+		return err
 	}
 
-	return tmp, err
+	r.Debugf("[registry] tagged image as %s", dockerizedHash)
+
+	err = r.dockerClient.RemoveImage(dockerPullImageID)
+	if err != nil {
+		log.Errorf("[registry] error removing image %s; %v", dockerPullImageID, err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *Registry) runServer() {
+	timeout := time.Duration(100 * time.Millisecond)
+	client := http.Client{
+		Timeout: timeout,
+	}
+	url := fmt.Sprintf("http://%s/health", r.dockerLocalRegistryHost)
+	resp, err := client.Get(url)
+	if err != nil || resp.StatusCode != 200 {
+		srv := server.NewServer(&server.Config{
+			Debug: r.debug,
+		})
+		go srv.Start()
+	}
 }
 
 // ipfsPrep formats the image data into a registry compatible format
-func ipfsPrep(tmp string) (string, error) {
+func (r *Registry) ipfsPrep(tmp string) (string, error) {
 	root, err := mktmp()
 	if err != nil {
 		return "", err
 	}
 
 	workdir := root
-	log.Printf("[registry] preparing image in: %s", workdir)
+	r.Debugf("[registry] preparing image in: %s", workdir)
 	name := "default"
 
 	// read human readable name of image
@@ -213,13 +227,13 @@ func ipfsPrep(tmp string) (string, error) {
 			return "", errors.New("only one repository expected in input file")
 		}
 		for imageName, tags := range reposJSON {
-			log.Println("[registry]", imageName, tags)
+			r.Debugf("[registry] %s %s", imageName, tags)
 			if len(tags) != 1 {
 				return "", fmt.Errorf("only one tag expected for %s", imageName)
 			}
 			for tag, hash := range tags {
 				name = normalizeImageName(imageName)
-				fmt.Printf("[registry] processing image:%s tag:%s hash:256:%s", name, tag, hash)
+				r.Debugf("[registry] processing image:%s tag:%s hash:256:%s", name, tag, hash)
 			}
 		}
 	}
@@ -244,13 +258,13 @@ func ipfsPrep(tmp string) (string, error) {
 	}
 
 	configDest := fmt.Sprintf("%s/blobs/sha256:%s", workdir, string(configFile[:len(configFile)-5]))
-	log.Printf("\n[registry] dist: %s", configDest)
+	r.Debugf("\n[registry] dist: %s", configDest)
 	mkdir(configDest)
 	if err := copyFile(tmp+"/"+configFile, configDest+"/"+configFile); err != nil {
 		return "", err
 	}
 
-	mf, err := makeV2Manifest(manifest, configFile, configDest, tmp, workdir)
+	mf, err := r.makeV2Manifest(manifest, configFile, configDest, tmp, workdir)
 	if err != nil {
 		return "", err
 	}
@@ -266,16 +280,16 @@ func ipfsPrep(tmp string) (string, error) {
 }
 
 // uploadDir uploads the directory to IPFS
-func (registry *Registry) uploadDir(root string) (string, error) {
-	hash, err := registry.ipfsClient.AddDir(root)
+func (r *Registry) uploadDir(root string) (string, error) {
+	hash, err := r.ipfsClient.AddDir(root)
 	if err != nil {
 		return "", err
 	}
 
-	log.Printf("[registry] upload hash %s", hash)
+	r.Debugf("[registry] upload hash %s", hash)
 
 	// get the first ref, which contains the image data
-	refs, err := registry.ipfsClient.Refs(hash, false)
+	refs, err := r.ipfsClient.Refs(hash, false)
 	if err != nil {
 		return "", err
 	}
@@ -296,6 +310,23 @@ func (registry *Registry) uploadDir(root string) (string, error) {
 	}
 
 	return "", errors.New("could not upload")
+}
+
+// mktmp creates a temporary directory
+func mktmp() (string, error) {
+	tmp, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", err
+	}
+
+	return tmp, err
+}
+
+// Debugf prints debug log
+func (r *Registry) Debugf(str string, args ...interface{}) {
+	if r.debug {
+		log.Printf(str, args...)
+	}
 }
 
 // ipfsShellCmd executes an IPFS command via the shell
@@ -355,8 +386,8 @@ func writeJSON(idate interface{}, path string) error {
 }
 
 // produce v2 manifest of type/application/vnd.docker.distribution.manifest.v2+json
-func makeV2Manifest(manifest map[string]interface{}, configFile, configDest, tmp, workdir string) (map[string]interface{}, error) {
-	v2manifest, err := prepareV2Manifest(manifest, tmp, workdir+"/blobs")
+func (r *Registry) makeV2Manifest(manifest map[string]interface{}, configFile, configDest, tmp, workdir string) (map[string]interface{}, error) {
+	v2manifest, err := r.prepareV2Manifest(manifest, tmp, workdir+"/blobs")
 	if err != nil {
 		return nil, err
 	}
@@ -384,7 +415,7 @@ func mergemap(a, b map[string]interface{}) map[string]interface{} {
 }
 
 // prepareV2Manifest preps the docker image into a docker registry V2 manifest format
-func prepareV2Manifest(mf map[string]interface{}, tmp, blobDir string) (map[string]interface{}, error) {
+func (r *Registry) prepareV2Manifest(mf map[string]interface{}, tmp, blobDir string) (map[string]interface{}, error) {
 	res := make(map[string]interface{})
 	res["schemaVersion"] = 2
 	res["mediaType"] = "application/vnd.docker.distribution.manifest.v2+json"
@@ -403,7 +434,7 @@ func prepareV2Manifest(mf map[string]interface{}, tmp, blobDir string) (map[stri
 		}
 		obj := make(map[string]interface{})
 		obj["mediaType"] = mediaType
-		size, digest, err := compressLayer(tmp+"/"+layer, blobDir)
+		size, digest, err := r.compressLayer(tmp+"/"+layer, blobDir)
 		if err != nil {
 			return nil, err
 		}
@@ -416,8 +447,8 @@ func prepareV2Manifest(mf map[string]interface{}, tmp, blobDir string) (map[stri
 }
 
 // compressLayer returns the sha256 hash of a directory
-func compressLayer(path, blobDir string) (int64, string, error) {
-	log.Printf("[registry] compressing layer: %s", path)
+func (r *Registry) compressLayer(path, blobDir string) (int64, string, error) {
+	r.Debugf("[registry] compressing layer: %s", path)
 	tmp := blobDir + "/layer.tmp.tgz"
 
 	err := gzipFile(path, tmp)

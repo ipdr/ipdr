@@ -12,13 +12,29 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var listener net.Listener
-var serverHost = fmt.Sprintf("0.0.0.0:%v", 5000)
+// Server is server structure
+type Server struct {
+	debug    bool
+	listener net.Listener
+	host     string
+}
 
-// Run runs the registry server
-func Run() error {
+// Config is server config
+type Config struct {
+	Debug bool
+}
+
+// NewServer returns a new server instance
+func NewServer(config *Config) *Server {
+	return &Server{
+		host: fmt.Sprintf("0.0.0.0:%v", 5000),
+	}
+}
+
+// Start runs the registry server
+func (s *Server) Start() error {
 	//  already listening
-	if listener != nil {
+	if s.listener != nil {
 		return nil
 	}
 
@@ -31,7 +47,12 @@ func Run() error {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		uri := r.RequestURI
-		log.Printf("[registry/server] %s", uri)
+		s.Debugf("[registry/server] %s", uri)
+
+		if uri == "/health" {
+			fmt.Fprintln(w, "OK")
+			return
+		}
 
 		if uri == "/v2/" {
 			jsonstr := []byte(fmt.Sprintf(`{"what": "a registry", "gateway":%q, "handles": [%q, %q], "problematic": ["version 1 registries"], "project": "https://github.com/miguelmota/ipdr"}`, gw, contentTypes["manifestListV2Schema"], contentTypes["manifestV2Schema"]))
@@ -60,14 +81,14 @@ func Run() error {
 			}
 		}
 
-		s := strings.Split(uri, "/")
-		if len(s) <= 2 {
+		parts := strings.Split(uri, "/")
+		if len(parts) <= 2 {
 			fmt.Fprintln(w, "out of range")
 			return
 		}
 
-		hash := regutil.IpfsifyHash(s[2])
-		rest := strings.Join(s[3:], "/") // tag
+		hash := regutil.IpfsifyHash(parts[2])
+		rest := strings.Join(parts[3:], "/") // tag
 		path := hash + "/" + rest
 
 		// blob request
@@ -77,7 +98,7 @@ func Run() error {
 			// manifest request
 			location = location + suffix
 		}
-		log.Printf("[registry/server] location %s", location)
+		s.Debugf("[registry/server] location %s", location)
 
 		req, err := http.NewRequest("GET", location, nil)
 		if err != nil {
@@ -107,21 +128,28 @@ func Run() error {
 	})
 
 	var err error
-	listener, err = net.Listen("tcp", serverHost)
+	s.listener, err = net.Listen("tcp", s.host)
 	if err != nil {
 		return err
 	}
 
-	port := listener.Addr().(*net.TCPAddr).Port
-	log.Printf("[registry/server] port %v", port)
+	port := s.listener.Addr().(*net.TCPAddr).Port
+	s.Debugf("[registry/server] port %v", port)
 
-	return http.Serve(listener, nil)
+	return http.Serve(s.listener, nil)
 }
 
-// Close stops the server
-func Close() {
-	if listener != nil {
-		listener.Close()
+// Stop stops the server
+func (s *Server) Stop() {
+	if s.listener != nil {
+		s.listener.Close()
+	}
+}
+
+// Debugf prints debug log
+func (s *Server) Debugf(str string, args ...interface{}) {
+	if s.debug {
+		log.Printf(str, args...)
 	}
 }
 

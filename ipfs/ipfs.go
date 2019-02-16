@@ -135,7 +135,7 @@ func spawnIpfsDaemon(ready chan bool) error {
 	}
 
 	ready <- true
-	log.Println("[ipfs] IPFS is running...")
+	//log.Println("[ipfs] IPFS is running...")
 	return nil
 }
 

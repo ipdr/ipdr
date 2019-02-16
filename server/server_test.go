@@ -8,7 +8,8 @@ import (
 func TestRun(t *testing.T) {
 	var err error
 	go func() {
-		err = Run()
+		src := NewServer(nil)
+		err = srv.Start()
 	}()
 
 	time.Sleep(1 * time.Second)
@@ -16,5 +17,5 @@ func TestRun(t *testing.T) {
 		t.Error(err)
 	}
 
-	Close()
+	srv.Stop()
 }

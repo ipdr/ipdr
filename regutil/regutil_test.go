@@ -11,6 +11,7 @@ func TestDockerizeHash(t *testing.T) {
 		out string
 	}{
 		{"QmaCm7VNsmM61FApFevTcJ1PxPabmfY4Tf2dFjpAdVdHLF", "ciqlarwwgn3qewftxxsapdx6aqi5yi7scootos7m5bqbjuzshoavapa"},
+		{"/ipfs/QmaCm7VNsmM61FApFevTcJ1PxPabmfY4Tf2dFjpAdVdHLF", "ciqlarwwgn3qewftxxsapdx6aqi5yi7scootos7m5bqbjuzshoavapa"},
 	} {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			got := DockerizeHash(tt.in)

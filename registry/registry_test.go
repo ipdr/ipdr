@@ -18,7 +18,7 @@ func init() {
 }
 
 func createTestTar() {
-	client := docker.NewClient()
+	client := createClient()
 	err := client.PullImage(testImage)
 	if err != nil {
 		panic(err)
@@ -28,6 +28,10 @@ func createTestTar() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func createClient() *Client {
+	return docker.NewClient(nil)
 }
 
 func createRegistry() *Registry {
@@ -65,7 +69,7 @@ func TestPushImage(t *testing.T) {
 
 func TestPushImageByID(t *testing.T) {
 	t.Skip()
-	client := docker.NewClient()
+	client := createClient()
 	err := client.LoadImageByFilePath(testImageTar)
 	if err != nil {
 		t.Error(err)
@@ -94,7 +98,7 @@ func TestDownloadImage(t *testing.T) {
 
 func TestPullImage(t *testing.T) {
 	t.Skip()
-	client := docker.NewClient()
+	client := createClient()
 	err := client.PullImage(testImage)
 	if err != nil {
 		t.Error(err)
