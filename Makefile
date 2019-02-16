@@ -8,13 +8,14 @@ PROJECTNAME=$(shell basename "$(PWD)")
 install:
 	@go get $(get)
 
+DOCKER_VERSION="18.03.1-ce"
+
 .PHONY: test/install-deps
 test/install-deps:
 	set -x
 	# install Docker
-	VER="18.03.1-ce"
-	curl -L -o /tmp/docker-$$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$$VER.tgz
-	tar -xz -C /tmp -f /tmp/docker-$$VER.tgz
+	curl -L -o /tmp/docker-$(DOCKER_VERSION).tgz https://download.docker.com/linux/static/stable/x86_64/docker-$$DOCKER_VERSION.tgz
+	tar -xz -C /tmp -f /tmp/docker-$(DOCKER_VERSION).tgz
 	sudo mv /tmp/docker/* /usr/bin
 	# install IPFS
 	wget https://dist.ipfs.io/go-ipfs/v0.4.14/go-ipfs_v0.4.14_linux-amd64.tar.gz -O /tmp/go-ipfs.tar.gz
