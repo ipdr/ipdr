@@ -143,10 +143,10 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
     hello world
     ```
 
-    Tag Docker image:
+    Retag Docker image:
 
     ```bash
-    $ docker tag docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi example/hellworld:latest
+    $ docker tag docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi example/helloworld:latest
     ```
 
 - Run image pulled from IPFS:
