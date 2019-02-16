@@ -17,6 +17,8 @@
 [![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
+IPDR is a [Docker Registry](https://docs.docker.com/registry/) tool that proxies Docker registry requests to IPFS for pushing and pulling images. IPDR allows you to store Docker images on IPFS instead of a central registry like Docker Hub or Google Container Registry. Docker images are referenced by their IPFS hash instead of the repo tag names.
+
 ## Contents
 
 - [Install](#install)
@@ -231,15 +233,15 @@ make test
 
 ## FAQ
 
-- Q: How can I configure the local registry host or port that ipdr uses when pushing or pulling Docker images?
+- Q: How can I configure the local registry host or port that IPDR uses when pushing or pulling Docker images?
 
   - A: Use the `--docker-registry-host` flag, eg. `--docker-registry-host docker.for.mac.local:5000`
 
-- Q: How can I configure the ipfs host that ipdr uses for pushing or pulling Docker images?
+- Q: How can I configure the IPFS host that ipdr uses for pushing or pulling Docker images?
 
   - A: Use the `--ipfs-host` flag, eg. `--ipfs-host 127.0.0.1:5001`
 
-- Q: How can I configure the port for the ipdr server?
+- Q: How can I configure the port for the IPDR server?
 
   - A: Use the `--port` flag, eg. `--port 5000`
 
