@@ -82,8 +82,8 @@ More info: https://github.com/miguelmota/ipdr`,
 		},
 	}
 
-	pushCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to push the image to. Eg. 127.0.0.1:5001")
 	pushCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs and outputs only IPFS hash")
+	pushCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to push the image to. Eg. 127.0.0.1:5001")
 	pushCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
 
 	pullCmd := &cobra.Command{
@@ -103,7 +103,8 @@ More info: https://github.com/miguelmota/ipdr`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			reg := registry.NewRegistry(&registry.Config{
 				DockerLocalRegistryHost: dockerRegistryHost,
-				Debug: !silent,
+				IPFSHost:                ipfsHost,
+				Debug:                   !silent,
 			})
 
 			imageHash := args[0]
@@ -122,6 +123,7 @@ More info: https://github.com/miguelmota/ipdr`,
 	}
 
 	pullCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs and outputs only Docker repo tag")
+	pushCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to pull the image from. Eg. 127.0.0.1:5001")
 	pullCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
 
 	serverCmd := &cobra.Command{

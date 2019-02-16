@@ -23,6 +23,7 @@
 - [Getting started](#getting-started)
 - [CLI](#cli)
 - [Test](#test)
+- [FAQ](#faq)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -178,7 +179,7 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
 ### TLDR; example
 
 ```bash
-# build docker image
+# build Docker image
 docker build -t example/helloworld .
 
 # push to IPFS
@@ -221,6 +222,20 @@ Use "ipdr [command] --help" for more information about a command.
 ```bash
 make test
 ```
+
+## FAQ
+
+- Q: How can I configure the local registry host or port that ipdr uses when pushing or pulling Docker images?
+
+  - A: Use the `--docker-registry-host` flag, eg. `--docker-registry-host docker.for.mac.local:5000`
+
+- Q: How can I configure the ipfs host that ipdr uses for pushing or pulling Docker images?
+
+  - A: Use the `--ipfs-host` flag, eg. `--ipfs-host 127.0.0.1:5001`
+
+- Q: How can I configure the port for the ipdr server?
+
+  - A: Use the `--port` flag, eg. `--port 5000`
 
 ## Contributing
 
