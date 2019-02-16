@@ -136,6 +136,19 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
     docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
     ```
 
+    Test run:
+
+    ```bash
+    $ docker run docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
+    hello world
+    ```
+
+    Tag Docker image:
+
+    ```bash
+    $ docker tag docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi example/hellworld:latest
+    ```
+
 - Run image pulled from IPFS:
 
     ```bash

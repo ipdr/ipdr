@@ -123,7 +123,7 @@ More info: https://github.com/miguelmota/ipdr`,
 	}
 
 	pullCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs and outputs only Docker repo tag")
-	pushCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to pull the image from. Eg. 127.0.0.1:5001")
+	pullCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to pull the image from. Eg. 127.0.0.1:5001")
 	pullCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
 
 	serverCmd := &cobra.Command{
