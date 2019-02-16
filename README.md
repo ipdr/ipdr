@@ -136,6 +136,23 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
     hello world
     ```
 
+### TLDR; example
+
+```bash
+# build docker image
+docker build -t example/helloworld .
+
+# push to IPFS
+IPFS_HASH="$(ipdr push example/helloworld --silent)"
+
+# pull from IPFS
+REPO_TAG=$(ipdr pull "$IPFS_HASH" --silent)
+
+# run image pulled from IPFS
+docker run "$REPO_TAG"
+```
+
+
 ## Test
 
 ```bash
