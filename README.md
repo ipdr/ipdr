@@ -62,11 +62,17 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
 
     Flush local DNS cache:
 
-    on macOS:
+      on macOS:
 
-    ```bash
-    dscacheutil -flushcache; sudo killall -HUP mDNSResponder
-    ```
+      ```bash
+      dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+      ```
+
+      on Ubuntu 18+:
+
+      ```bash
+      sudo systemd-resolve --flush-caches
+      ```
 
 ### Example flow
 

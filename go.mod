@@ -1,6 +1,7 @@
 module github.com/miguelmota/ipdr
 
 require (
+	github.com/Microsoft/go-winio v0.4.11 // indirect
 	github.com/btcsuite/btcd v0.0.0-20190213025234-306aecffea32 // indirect
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -13,6 +14,7 @@ require (
 	github.com/google/go-cmp v0.2.0 // indirect
 	github.com/gorilla/mux v1.7.0 // indirect
 	github.com/gxed/hashland v0.0.0-20180221191214-d9f6b97f8db2 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/ipfs/go-ipfs-api v1.3.5
 	github.com/ipfs/go-ipfs-cmdkit v1.1.3 // indirect
 	github.com/jbenet/go-base58 v0.0.0-20150317085156-6237cf65f3a6
