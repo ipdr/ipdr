@@ -1,7 +1,5 @@
-build:
-  main: ./cmd/ipdr/ipdr.go
-
 builds:
+  - main: ./cmd/ipdr/main.go
   - binary: ipdr
     goos:
       - windows
