@@ -55,6 +55,12 @@ lint: $(GOMETALINTER)
 build:
 	go build -o bin/ipdr cmd/ipdr/main.go
 
+## release: Release a new version. Runs `goreleaser internally.
+.PHONY: release
+release:
+	@rm -rf dist
+	goreleaser
+
 .PHONY: help
 help: Makefile
 	@echo
