@@ -2,7 +2,6 @@ package netutil
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"regexp"
 	"strconv"
@@ -86,7 +85,6 @@ func isPrivateIP(ip net.IP) bool {
 func ExtractPort(host string) uint {
 	re := regexp.MustCompile(`(.*:)?(\d+)`)
 	matches := re.FindStringSubmatch(host)
-	fmt.Println(matches)
 	if len(matches) == 0 {
 		return 0
 	}
