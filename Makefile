@@ -59,7 +59,7 @@ build:
 .PHONY: release
 release:
 	@rm -rf dist
-	goreleaser
+	goreleaser cmd/ipdr/main.go
 
 .PHONY: help
 help: Makefile

@@ -1,5 +1,5 @@
 builds:
-  - binary: cointop
+  - binary: ipdr
     goos:
       - windows
       - darwin
