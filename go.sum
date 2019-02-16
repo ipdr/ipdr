@@ -36,7 +36,7 @@ github.com/docker/distribution v2.7.1+incompatible h1:a5mlkVzth6W5A4fOsS3D2EO5BU
 github.com/docker/distribution v2.7.1+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
 github.com/docker/docker v0.7.3-0.20190214224811-fcb286895b70 h1:YuIVsztcfAgDzsq3bOhKYmp0TpuRE5/gHzErhOQyKmo=
 github.com/docker/docker v0.7.3-0.20190214224811-fcb286895b70/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
-github.com/docker/docker v1.13.1 h1:5VBhsO6ckUxB0A8CE5LlUJdXzik9cbEbBTQ/ggeml7M=
+github.com/docker/docker v1.13.1 h1:IkZjBSIc8hBjLpqeAbeE5mca5mNgeatLHBy3GO78BWo=
 github.com/docker/docker v1.13.1/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/docker/go-connections v0.3.0/go.mod h1:Gbd7IOopHjR8Iph03tsViu4nIes5XhDvyHbTtUxmeec=
 github.com/docker/go-connections v0.4.0 h1:El9xVISelRB7BuFusrZozjnkIM5YnzCViNKohAFqRJQ=
@@ -196,7 +196,7 @@ github.com/multiformats/go-multiaddr-net v1.7.1 h1:1k758hMzdVA8+qE2z705TNWeemoi+
 github.com/multiformats/go-multiaddr-net v1.7.1/go.mod h1:AO4WqKzxLt+paJ0N0kufj6teQ2R6fZbnItDvGTwilmk=
 github.com/multiformats/go-multibase v0.3.0/go.mod h1:RUrDbdRB1mQ1K/3PAh7h7+6NliRK10PA5joM8V0IYLI=
 github.com/multiformats/go-multicodec v0.1.6/go.mod h1:lliaRHbcG8q33yf4Ot9BGD7JqR/Za9HE7HTyVyKwrUQ=
-github.com/multiformats/go-multihash v1.0.8 h1:pyowaBSivNxBr137ZjYkr0q4o41MKSJVPKuO7F7AAfY=
+github.com/multiformats/go-multihash v1.0.8 h1:v/1HVWH2gq7IZGnFXrTsjoG2I5XIsU5gXiGH5SH915k=
 github.com/multiformats/go-multihash v1.0.8/go.mod h1:sT17phG+xVgnrZc8ht/ZoCIV0sKRwvmZkXk46UfSxM4=
 github.com/multiformats/go-multistream v0.3.9/go.mod h1:fJTiDfXJVmItycydCnNx4+wSzZ5NwG2FEVAI30fiovg=
 github.com/obscuren/ecies v0.0.0-20150213224233-7c0f4a9b18d9 h1:Q9JlyQu2TEEvmDnbiwhTis7qt3jpOt8spfuyaO6+vDw=

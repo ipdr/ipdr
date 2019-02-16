@@ -17,6 +17,12 @@
 
 **WIP**
 
+## Install
+
+```bash
+go install github.com/miguelmota/ipdr/cmd/ipdr
+```
+
 ## Getting started
 
 TODO
