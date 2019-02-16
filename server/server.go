@@ -26,8 +26,13 @@ type Config struct {
 
 // NewServer returns a new server instance
 func NewServer(config *Config) *Server {
+	if config == nil {
+		config = &Config{}
+	}
+
 	return &Server{
-		host: fmt.Sprintf("0.0.0.0:%v", 5000),
+		host:  fmt.Sprintf("0.0.0.0:%v", 5000),
+		debug: config.Debug,
 	}
 }
 

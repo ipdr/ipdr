@@ -17,8 +17,12 @@ func init() {
 	createTestTar()
 }
 
+func createClient() *Client {
+	return NewClient(nil)
+}
+
 func createTestTar() {
-	client := NewClient()
+	client := createClient()
 	err := client.PullImage(testImage)
 	if err != nil {
 		panic(err)
@@ -31,14 +35,14 @@ func createTestTar() {
 }
 
 func TestNew(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	if client == nil {
 		t.Error("expected instance")
 	}
 }
 
 func TestListImages(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	images, err := client.ListImages()
 	if err != nil {
 		t.Error(err)
@@ -55,7 +59,7 @@ func TestListImages(t *testing.T) {
 }
 
 func TestHasImage(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	err := client.PullImage(testImage)
 	if err != nil {
 		t.Error(err)
@@ -70,7 +74,7 @@ func TestHasImage(t *testing.T) {
 }
 
 func TestPullImage(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	err := client.PullImage(testImage)
 	if err != nil {
 		t.Error(err)
@@ -78,7 +82,7 @@ func TestPullImage(t *testing.T) {
 }
 
 func TestReadImage(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	err := client.PullImage(testImage)
 	if err != nil {
 		t.Error(err)
@@ -92,7 +96,7 @@ func TestReadImage(t *testing.T) {
 }
 
 func TestLoadImage(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	input, err := os.Open(testImageTar)
 	if err != nil {
 		t.Error(err)
@@ -104,7 +108,7 @@ func TestLoadImage(t *testing.T) {
 }
 
 func TestLoadImageByFilePath(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	err := client.LoadImageByFilePath(testImageTar)
 	if err != nil {
 		t.Error(err)
@@ -112,7 +116,7 @@ func TestLoadImageByFilePath(t *testing.T) {
 }
 
 func TestTagImage(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	err := client.PullImage(testImage)
 	if err != nil {
 		t.Error(err)
@@ -147,7 +151,7 @@ func TestTagImage(t *testing.T) {
 }
 
 func TestRemoveImage(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	err := client.PullImage(testImage)
 	if err != nil {
 		t.Error(err)
@@ -160,7 +164,7 @@ func TestRemoveImage(t *testing.T) {
 }
 
 func TestRemoveAllImages(t *testing.T) {
-	client := NewClient()
+	client := createClient()
 	err := client.RemoveAllImages()
 	if err != nil {
 		t.Error(err)

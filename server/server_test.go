@@ -7,8 +7,8 @@ import (
 
 func TestRun(t *testing.T) {
 	var err error
+	srv := NewServer(nil)
 	go func() {
-		src := NewServer(nil)
 		err = srv.Start()
 	}()
 

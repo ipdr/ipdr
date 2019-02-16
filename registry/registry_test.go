@@ -30,7 +30,7 @@ func createTestTar() {
 	}
 }
 
-func createClient() *Client {
+func createClient() *docker.Client {
 	return docker.NewClient(nil)
 }
 

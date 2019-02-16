@@ -43,6 +43,10 @@ type Config struct {
 
 // NewRegistry returns a new registry client instance
 func NewRegistry(config *Config) *Registry {
+	if config == nil {
+		config = &Config{}
+	}
+
 	dockerLocalRegistryHost := config.DockerLocalRegistryHost
 	if dockerLocalRegistryHost == "" {
 		dockerLocalRegistryHost = os.Getenv("DOCKER_LOCAL_REGISTRY_HOST")

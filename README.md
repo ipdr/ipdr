@@ -1,5 +1,3 @@
-WIP
-
 <h3 align="center">
   <br />
   <img src="https://user-images.githubusercontent.com/168240/52895983-7330f100-3176-11e9-855c-246eaabd3adc.png" alt="logo" width="600" />
@@ -35,6 +33,42 @@ go install github.com/miguelmota/ipdr/cmd/ipdr
 
 ## Getting started
 
+### Prerequisites
+
+- Start IPFS daemon ([Install instructions](https://docs.ipfs.io/introduction/install/)):
+
+    ```bash
+    $ ipfs daemon
+    Initializing daemon...
+    Swarm listening on /ip4/127.0.0.1/tcp/4001
+    Swarm listening on /ip4/192.168.86.90/tcp/4001
+    Swarm listening on /ip6/::1/tcp/4001
+    Swarm listening on /p2p-circuit/ipfs/QmR29wrbNv3WrMuodwuLiDwvskuZKKeTtcYDw7SwNffzCH
+    Swarm announcing /ip4/127.0.0.1/tcp/4001
+    Swarm announcing /ip4/192.168.0.21/tcp/43042
+    Swarm announcing /ip4/192.168.86.90/tcp/4001
+    Swarm announcing /ip6/::1/tcp/4001
+    API server listening on /ip4/0.0.0.0/tcp/5001
+    Gateway (readonly) server listening on /ip4/0.0.0.0/tcp/8080
+    Daemon is ready
+    ```
+
+- Add `docker.localhost` to `/etc/hosts`:
+
+    ```hosts
+    127.0.0.1       docker.localhost
+    ```
+
+    Flush DNS cache:
+
+    on macOS:
+
+    ```bash
+    dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+    ```
+
+### Example flow
+
 Create `Dockerfile`:
 
 ```dockerfile
@@ -54,38 +88,6 @@ Test run:
 ```bash
 $ docker run example/helloworld:latest
 hello world
-```
-
-Start IPFS daemon ([Install instructions](https://docs.ipfs.io/introduction/install/)):
-
-```bash
-$ ipfs daemon
-Initializing daemon...
-Swarm listening on /ip4/127.0.0.1/tcp/4001
-Swarm listening on /ip4/192.168.86.90/tcp/4001
-Swarm listening on /ip6/::1/tcp/4001
-Swarm listening on /p2p-circuit/ipfs/QmR29wrbNv3WrMuodwuLiDwvskuZKKeTtcYDw7SwNffzCH
-Swarm announcing /ip4/127.0.0.1/tcp/4001
-Swarm announcing /ip4/192.168.0.21/tcp/43042
-Swarm announcing /ip4/192.168.86.90/tcp/4001
-Swarm announcing /ip6/::1/tcp/4001
-API server listening on /ip4/0.0.0.0/tcp/5001
-Gateway (readonly) server listening on /ip4/0.0.0.0/tcp/8080
-Daemon is ready
-```
-
-Add `docker.localhost` to `/etc/hosts`:
-
-```hosts
-127.0.0.1       docker.localhost
-```
-
-Flush DNS cache:
-
-on macOS:
-
-```bash
-dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 ```
 
 Use IPDR CLI to push to IPFS:

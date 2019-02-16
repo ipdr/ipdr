@@ -27,6 +27,9 @@ type Config struct {
 
 // NewClient creates a new client instance
 func NewClient(config *Config) *Client {
+	if config == nil {
+		config = &Config{}
+	}
 	return newEnvClient(config)
 }
 
