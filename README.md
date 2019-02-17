@@ -37,15 +37,15 @@ IPDR is a [Docker Registry](https://docs.docker.com/registry/) tool that proxies
     go get -u github.com/miguelmota/ipdr/cmd/ipdr
     ```
 
-- Install from [release binaries](https://github.com/miguelmota/ipdr/releases)
+- Install from [release binaries](https://github.com/miguelmota/ipdr/releases):
 
     ```bash
-# replace x.x.x with the latest version
+    # replace x.x.x with the latest version
     wget https://github.com/miguelmota/ipdr/releases/download/x.x.x/ipdr_x.x.x_linux_amd64.tar.gz
     tar -xvzf ipdr_x.x.x_linux_amd64.tar.gz ipdr
     ./ipdr --help
 
-# move to bin path
+    # move to bin path
     sudo mv ipdr /usr/local/bin/ipdr
     ```
 
