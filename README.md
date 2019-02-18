@@ -35,6 +35,7 @@ High-level overview:
 - [Test](#test)
 - [FAQ](#faq)
 - [Contributing](#contributing)
+- [Resources](#resources)
 - [License](#license)
 
 ## Install
@@ -276,6 +277,12 @@ make test
 Pull requests are welcome!
 
 For contributions please create a new branch and submit a pull request for review.
+
+## Resources
+
+- [Docker Registry HTTP API V2 Spec](https://docs.docker.com/registry/spec/api/)
+- [Docker Registry 2.0 (slidedeck)](https://www.slideshare.net/Docker/docker-48351569)
+- [image2ipfs](https://github.com/jvassev/image2ipfs/)
 
 ## License
 
