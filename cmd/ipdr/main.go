@@ -30,6 +30,7 @@ func main() {
 	}
 
 	var ipfsHost string
+	var ipfsGateway string
 	var format string
 	var dockerRegistryHost string
 	var port uint
@@ -63,6 +64,7 @@ More info: https://github.com/miguelmota/ipdr`,
 			reg := registry.NewRegistry(&registry.Config{
 				DockerLocalRegistryHost: dockerRegistryHost,
 				IPFSHost:                ipfsHost,
+				IPFSGateway:             ipfsGateway,
 				Debug:                   !silent,
 			})
 
@@ -104,6 +106,7 @@ More info: https://github.com/miguelmota/ipdr`,
 			reg := registry.NewRegistry(&registry.Config{
 				DockerLocalRegistryHost: dockerRegistryHost,
 				IPFSHost:                ipfsHost,
+				IPFSGateway:             ipfsGateway,
 				Debug:                   !silent,
 			})
 
@@ -124,12 +127,13 @@ More info: https://github.com/miguelmota/ipdr`,
 
 	pullCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs and outputs only Docker repo tag")
 	pullCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to pull the image from. Eg. 127.0.0.1:5001")
+	pullCmd.Flags().StringVarP(&ipfsGateway, "ipfs-gateway", "g", "127.0.0.1:8080", "The readonly IPFS Gateway URL to pull the image from. Eg. https://ipfs.io")
 	pullCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
 
 	serverCmd := &cobra.Command{
 		Use:   "server",
-		Short: "Start registry server",
-		Long:  "Start the Docker registry server that images stored on IPFS to Docker registry format",
+		Short: "Start IPFS-backed Docker registry server",
+		Long:  "Start the IPFS-backed Docker registry server that proxies images stored on IPFS to Docker registry format",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			srv := server.NewServer(&server.Config{
 				Port:  port,

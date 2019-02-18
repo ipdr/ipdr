@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os/exec"
 	"strings"
 	"time"
@@ -15,9 +16,16 @@ import (
 
 // Client is the client structure
 type Client struct {
-	client   *api.Shell
-	isRemote bool
-	host     string
+	client     *api.Shell
+	isRemote   bool
+	host       string
+	gatewayURL string
+}
+
+// Config is the config for the client
+type Config struct {
+	Host       string
+	GatewayURL string
 }
 
 // NewClient returns a new IPFS client instance
@@ -35,16 +43,31 @@ func NewClient() *Client {
 	client := api.NewShell(url)
 	return &Client{
 		client: client,
+		host:   url,
 	}
 }
 
 // NewRemoteClient returns a new IPFS shell client
-func NewRemoteClient(host string) *Client {
-	client := api.NewShell(host)
+func NewRemoteClient(config *Config) *Client {
+	if config == nil {
+		config = &Config{}
+	}
+
+	client := api.NewShell(config.Host)
+	host := config.Host
+	if host == "" {
+		var err error
+		host, err = getIpfsAPIURL()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	return &Client{
-		client:   client,
-		isRemote: true,
-		host:     host,
+		client:     client,
+		isRemote:   true,
+		host:       host,
+		gatewayURL: config.GatewayURL,
 	}
 }
 
@@ -65,6 +88,18 @@ func (client *Client) Refs(hash string, recursive bool) (<-chan string, error) {
 	}
 
 	return client.client.Refs(hash, recursive)
+}
+
+// GatewayURL returns the gateway URL
+func (client *Client) GatewayURL() string {
+	if client.gatewayURL == "" {
+		url, err := HostGatewayURL()
+		if err == nil {
+			return url
+		}
+	}
+
+	return NormalizeGatewayURL(client.gatewayURL)
 }
 
 // removeRefs returns refs using the IPFS API
@@ -139,8 +174,41 @@ func spawnIpfsDaemon(ready chan bool) error {
 	return nil
 }
 
-// GatewayURL returns IPFS gateway URL
-func GatewayURL() (string, error) {
+// NormalizeGatewayURL normalizes IPFS gateway URL
+func NormalizeGatewayURL(urlstr string) string {
+	if !strings.HasPrefix(urlstr, "http") {
+		urlstr = "http://" + urlstr
+	}
+	u, err := url.Parse(urlstr)
+	if err != nil {
+		panic(err)
+	}
+
+	scheme := u.Scheme
+	if u.Scheme != "" {
+		scheme = "http"
+	}
+
+	host := u.Hostname()
+	if host == "" {
+		host = "ipfs.io"
+	}
+
+	var user string
+	if u.User != nil {
+		user = u.User.String() + "@"
+	}
+
+	port := u.Port()
+	if port != "" {
+		port = ":" + port
+	}
+
+	return fmt.Sprintf("%s://%s%s%s", scheme, user, host, port)
+}
+
+// HostGatewayURL returns IPFS gateway URL that host is configured to use
+func HostGatewayURL() (string, error) {
 	port, err := getIpfsGatewayPort()
 	if err != nil {
 		return "", err
@@ -172,5 +240,6 @@ func getIpfsGatewayPort() (string, error) {
 	if len(parts) == 0 {
 		return "", errors.New("[ipfs] gateway config not found")
 	}
+
 	return parts[len(parts)-1], nil
 }

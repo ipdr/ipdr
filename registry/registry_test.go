@@ -42,7 +42,7 @@ func TestPushImageByID(t *testing.T) {
 		t.Error(err)
 	}
 
-	registry := NewRegistry(&Config{})
+	registry := createRegistry()
 	ipfsHash, err := registry.PushImageByID(testImage)
 	if err != nil {
 		t.Error(err)

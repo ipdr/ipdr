@@ -38,6 +38,7 @@ type Registry struct {
 type Config struct {
 	DockerLocalRegistryHost string
 	IPFSHost                string
+	IPFSGateway             string
 	Debug                   bool
 }
 
@@ -60,12 +61,10 @@ func NewRegistry(config *Config) *Registry {
 		}
 	}
 
-	ipfsHost := "127.0.0.1:5001"
-	if config.IPFSHost != "" {
-		ipfsHost = config.IPFSHost
-	}
-
-	ipfsClient := ipfs.NewRemoteClient(ipfsHost)
+	ipfsClient := ipfs.NewRemoteClient(&ipfs.Config{
+		Host:       config.IPFSHost,
+		GatewayURL: config.IPFSGateway,
+	})
 	dockerClient := docker.NewClient(&docker.Config{
 		Debug: config.Debug,
 	})
@@ -204,8 +203,9 @@ func (r *Registry) runServer() {
 	resp, err := client.Get(url)
 	if err != nil || resp.StatusCode != 200 {
 		srv := server.NewServer(&server.Config{
-			Port:  netutil.ExtractPort(r.dockerLocalRegistryHost),
-			Debug: r.debug,
+			Port:        netutil.ExtractPort(r.dockerLocalRegistryHost),
+			Debug:       r.debug,
+			IPFSGateway: r.ipfsClient.GatewayURL(),
 		})
 		go srv.Start()
 	}

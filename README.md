@@ -231,7 +231,7 @@ Available Commands:
   help        Help about any command
   pull        Pull image from the IPFS-backed Docker registry
   push        Push image to IPFS-backed Docker registry
-  server      Start registry server
+  server      Start IPFS-backed Docker registry server
 
 Flags:
   -h, --help   help for ipdr
@@ -251,11 +251,15 @@ make test
 
   - A: Use the `--docker-registry-host` flag, eg. `--docker-registry-host docker.for.mac.local:5000`
 
-- Q: How can I configure the IPFS host that ipdr uses for pushing or pulling Docker images?
+- Q: How can I configure the IPFS host that IPDR uses for pushing Docker images?
 
   - A: Use the `--ipfs-host` flag, eg. `--ipfs-host 127.0.0.1:5001`
 
-- Q: How can I configure the port for the IPDR server?
+- Q: How can I configure the IPFS gateway that IPDR uses for pulling Docker images?
+
+  - A: Use the `--ipfs-gateway` flag, eg. `--ipfs-gateway https://ipfs.io`
+
+- Q: How can I configure the port for the IPDR registry server?
 
   - A: Use the `--port` flag, eg. `--port 5000`
 

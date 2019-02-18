@@ -14,15 +14,17 @@ import (
 
 // Server is server structure
 type Server struct {
-	debug    bool
-	listener net.Listener
-	host     string
+	debug       bool
+	listener    net.Listener
+	host        string
+	ipfsGateway string
 }
 
 // Config is server config
 type Config struct {
-	Debug bool
-	Port  uint
+	Debug       bool
+	Port        uint
+	IPFSGateway string
 }
 
 // NewServer returns a new server instance
@@ -37,8 +39,9 @@ func NewServer(config *Config) *Server {
 	}
 
 	return &Server{
-		host:  fmt.Sprintf("0.0.0.0:%v", port),
-		debug: config.Debug,
+		host:        fmt.Sprintf("0.0.0.0:%v", port),
+		debug:       config.Debug,
+		ipfsGateway: ipfs.NormalizeGatewayURL(config.IPFSGateway),
 	}
 }
 
@@ -103,7 +106,7 @@ func (s *Server) Start() error {
 		path := hash + "/" + rest
 
 		// blob request
-		location := ipfsURL(path)
+		location := s.ipfsURL(path)
 
 		if suffix != "" {
 			// manifest request
@@ -164,11 +167,6 @@ func (s *Server) Debugf(str string, args ...interface{}) {
 }
 
 // ipfsURL returns the full IPFS url
-func ipfsURL(hash string) string {
-	url, err := ipfs.GatewayURL()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return fmt.Sprintf("%s/ipfs/%s", url, hash)
+func (s *Server) ipfsURL(hash string) string {
+	return fmt.Sprintf("%s/ipfs/%s", s.ipfsGateway, hash)
 }

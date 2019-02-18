@@ -1,6 +1,7 @@
 package ipfs
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -27,11 +28,8 @@ func TestAddDir(t *testing.T) {
 }
 
 func TestGatewayURL(t *testing.T) {
-	url, err := GatewayURL()
-	if err != nil {
-		t.Error(err)
-	}
-
+	client := NewClient()
+	url := client.GatewayURL()
 	expected := "http://127.0.0.1:8080"
 	if url != expected {
 		t.Fatalf("expected: %s; got: %s", expected, url)
@@ -47,6 +45,24 @@ func TestGetIpfsGatewayPort(t *testing.T) {
 	expected := "8080"
 	if port != expected {
 		t.Fatalf("expected: %s; got: %s", expected, port)
+	}
+}
+
+func TestNormalizeGatewayURL(t *testing.T) {
+	for i, tt := range []struct {
+		in  string
+		out string
+	}{
+		{"127.0.0.1:8080", "http://127.0.0.1:8080"},
+		{"http://123.123.123.123:8080", "http://123.123.123.123:8080"},
+		{"", "http://ipfs.io"},
+	} {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			got := NormalizeGatewayURL(tt.in)
+			if got != tt.out {
+				t.Errorf("want %q, got %q", tt.out, got)
+			}
+		})
 	}
 }
 
