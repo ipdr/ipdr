@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -25,6 +26,22 @@ type Config struct {
 	Debug       bool
 	Port        uint
 	IPFSGateway string
+}
+
+// InfoResponse is response for manifest info response
+type InfoResponse struct {
+	Info        string   `json:"what"`
+	Project     string   `json:"project"`
+	Gateway     string   `json:"gateway"`
+	Handles     []string `json:"handles"`
+	Problematic []string `json:"problematic"`
+}
+
+var projectURL = "https://github.com/miguelmota/ipdr"
+
+var contentTypes = map[string]string{
+	"manifestV2Schema":     "application/vnd.docker.distribution.manifest.v2+json",
+	"manifestListV2Schema": "application/vnd.docker.distribution.manifest.list.v2+json",
 }
 
 // NewServer returns a new server instance
@@ -52,13 +69,6 @@ func (s *Server) Start() error {
 		return nil
 	}
 
-	var gw string
-
-	contentTypes := map[string]string{
-		"manifestV2Schema":     "application/vnd.docker.distribution.manifest.v2+json",
-		"manifestListV2Schema": "application/vnd.docker.distribution.manifest.list.v2+json",
-	}
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		uri := r.RequestURI
 		s.Debugf("[registry/server] %s", uri)
@@ -69,7 +79,20 @@ func (s *Server) Start() error {
 		}
 
 		if uri == "/v2/" {
-			jsonstr := []byte(fmt.Sprintf(`{"what": "a registry", "gateway":%q, "handles": [%q, %q], "problematic": ["version 1 registries"], "project": "https://github.com/miguelmota/ipdr"}`, gw, contentTypes["manifestListV2Schema"], contentTypes["manifestV2Schema"]))
+			jsonstr, err := json.Marshal(&InfoResponse{
+				Info:    "An IPFS-backed Docker registry",
+				Project: projectURL,
+				Gateway: s.ipfsGateway,
+				Handles: []string{
+					contentTypes["manifestListV2Schema"],
+					contentTypes["manifestV2Schema"],
+				},
+				Problematic: []string{"version 1 registries"},
+			})
+			if err != nil {
+				fmt.Fprintln(w, err)
+				return
+			}
 
 			w.Header().Set("Docker-Distribution-API-Version", "registry/2.0")
 			fmt.Fprintln(w, string(jsonstr))

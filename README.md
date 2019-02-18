@@ -19,6 +19,10 @@
 
 IPDR is a [Docker Registry](https://docs.docker.com/registry/) tool that proxies Docker registry requests to IPFS for pushing and pulling images. IPDR allows you to store Docker images on IPFS instead of a central registry like Docker Hub or Google Container Registry. Docker images are referenced by their IPFS hash instead of the repo tag names.
 
+IPDR is compatabile with the *Docker Registry HTTP [API V2 Spec](https://docs.docker.com/registry/spec/api/)* for pulling images&ast;
+
+<sup><sub>&ast;not fully 1:1 implemented yet</sub></sup>
+
 ## Contents
 
 - [Install](#install)
@@ -238,6 +242,8 @@ Flags:
 
 Use "ipdr [command] --help" for more information about a command.
 ```
+
+/v2/<dockerized IPFS hash>/
 
 ## Test
 
