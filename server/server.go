@@ -64,7 +64,7 @@ func NewServer(config *Config) *Server {
 
 // Start runs the registry server
 func (s *Server) Start() error {
-	//  already listening
+	//  return if already started
 	if s.listener != nil {
 		return nil
 	}
