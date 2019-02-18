@@ -23,6 +23,8 @@ IPDR is compatabile with the *Docker Registry HTTP [API V2 Spec](https://docs.do
 
 <sup><sub>&ast;not fully 1:1 implemented yet</sub></sup>
 
+High-level overview:
+
 <img src="https://user-images.githubusercontent.com/168240/52923314-14858780-32dc-11e9-80f8-9a0025de6090.png" alt="logo" width="500" />
 
 ## Contents
