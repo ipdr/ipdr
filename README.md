@@ -11,7 +11,7 @@
 > [IPFS](https://github.com/ipfs/go-ipfs)-backed [Docker](https://github.com/docker/docker) Registry
 
 [![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/miguelmota/ipdr/master/LICENSE)
-[![Build Status](https://travis-ci.org/miguelmota/ipdr.svg?branch=master)](https://travis-ci.org/miguelmota/ipdr)
+[![CircleCI](https://circleci.com/gh/miguelmota/ipdr.svg?style=svg)](https://circleci.com/gh/miguelmota/ipdr)
 [![Go Report Card](https://goreportcard.com/badge/github.com/miguelmota/ipdr?)](https://goreportcard.com/report/github.com/miguelmota/ipdr)
 [![GoDoc](https://godoc.org/github.com/miguelmota/ipdr?status.svg)](https://godoc.org/github.com/miguelmota/ipdr)
 [![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)

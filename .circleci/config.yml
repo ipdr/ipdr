@@ -1,0 +1,61 @@
+references:
+  ipdr-build-image: &ipdr-build-image
+    circleci/classic:latest
+
+version: 2
+jobs:
+  build:
+    machine:
+      image: *ipdr-build-image
+
+    working_directory: /home/circleci/.go_workspace/src/github.com/miguelmota/ipdr
+    steps:
+      - run:
+          name: Install Golang
+          command: |
+            sudo add-apt-repository ppa:gophers/archive
+            sudo apt-get update -y
+            sudo apt-get install golang-1.10-go -y
+            export GOPATH=/home/circleci/.go_workspace
+            export PATH=$PATH:$GOPATH/bin
+            go version
+
+      - run:
+          name: Install Docker
+          command: |
+            set -x
+            VER="18.03.1-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            sudo mv /tmp/docker/* /usr/bin
+
+      - run:
+          name: Install IPFS
+          command: |
+            set -x
+            wget https://dist.ipfs.io/go-ipfs/v0.4.14/go-ipfs_v0.4.14_linux-amd64.tar.gz -O /tmp/go-ipfs.tar.gz
+            cd /tmp
+            tar xvfz go-ipfs.tar.gz
+            sudo cp go-ipfs/ipfs /home/circleci/bin/
+            ipfs version
+
+      - run:
+          name: Run IPFS daemon
+          command: |
+            ipfs init
+            ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
+            ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/9001
+            ipfs daemon &
+
+      - checkout
+
+      - run:
+          name: Tests
+          command: |
+            make test
+
+workflows:
+  version: 2
+  all:
+    jobs:
+      - build
