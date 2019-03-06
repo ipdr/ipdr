@@ -4,8 +4,6 @@ import (
 	"io"
 	"os"
 	"testing"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 var (
@@ -116,7 +114,6 @@ func TestTagImage(t *testing.T) {
 	var hasImage bool
 	for _, image := range images {
 		for _, tag := range image.Tags {
-			spew.Dump(image.Tags)
 			if tag == newTag {
 				hasImage = true
 				break

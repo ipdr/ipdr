@@ -274,8 +274,6 @@ func (r *Registry) ipfsPrep(tmp string) (string, error) {
 		return "", err
 	}
 
-	//spew.Dump(mf)
-
 	err = writeJSON(mf, workdir+"/manifests/latest-v2")
 	if err != nil {
 		return "", err
