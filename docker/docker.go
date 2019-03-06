@@ -199,6 +199,9 @@ func (c *Client) LoadImageByFilePath(filepath string) error {
 // SaveImageTar saves an image into a tarball
 func (c *Client) SaveImageTar(imageID string, dest string) error {
 	reader, err := c.ReadImage(imageID)
+	if err != nil {
+		return err
+	}
 
 	fo, err := os.Create(dest)
 	if err != nil {
