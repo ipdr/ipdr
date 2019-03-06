@@ -8,27 +8,6 @@ PROJECTNAME=$(shell basename "$(PWD)")
 install:
 	@go get $(get)
 
-DOCKER_VERSION=18.03.1-ce
-
-.PHONY: test/install-deps
-test/install-deps:
-	set -x
-	# install Docker
-	curl -L -o /tmp/docker-$(DOCKER_VERSION).tgz https://download.docker.com/linux/static/stable/x86_64/docker-$$DOCKER_VERSION.tgz
-	tar -xz -C /tmp -f /tmp/docker-$(DOCKER_VERSION).tgz
-	sudo mv /tmp/docker/* /usr/bin
-	# install IPFS
-	wget https://dist.ipfs.io/go-ipfs/v0.4.14/go-ipfs_v0.4.14_linux-amd64.tar.gz -O /tmp/go-ipfs.tar.gz
-	cd /tmp
-	tar xvfz go-ipfs.tar.gz
-	sudo cp go-ipfs/ipfs /usr/bin/
-	ipfs version
-	# run IPFS daemon
-	ipfs init
-	ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
-	ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/9001
-	ipfs daemon &
-
 ## test: Runs `go test` on project test files.
 .PHONY: test
 test:

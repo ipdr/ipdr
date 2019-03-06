@@ -13,9 +13,12 @@ jobs:
       - run:
           name: Install Golang
           command: |
-            sudo add-apt-repository ppa:gophers/archive
             sudo apt-get update -y
-            sudo apt-get install golang-1.10-go -y
+            cd /tmp
+            wget https://dl.google.com/go/go1.11.linux-amd64.tar.gz
+            sudo tar -xvf go1.11.linux-amd64.tar.gz
+            sudo rm -rf /usr/local/go
+            sudo mv go /usr/local
             export GOPATH=/home/circleci/.go_workspace
             export PATH=$PATH:$GOPATH/bin
             go version
