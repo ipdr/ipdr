@@ -57,7 +57,7 @@ jobs:
       - run:
           name: Tests
           command: |
-            echo "TODO"
+            make test
 
 workflows:
   version: 2
