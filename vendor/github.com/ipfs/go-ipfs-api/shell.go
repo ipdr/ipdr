@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	files "github.com/ipfs/go-ipfs-cmdkit/files"
+	files "github.com/ipfs/go-ipfs-files"
 	homedir "github.com/mitchellh/go-homedir"
 	ma "github.com/multiformats/go-multiaddr"
 	manet "github.com/multiformats/go-multiaddr-net"
@@ -33,7 +33,7 @@ const (
 
 type Shell struct {
 	url     string
-	httpcli *gohttp.Client
+	httpcli gohttp.Client
 }
 
 func NewLocalShell() *Shell {
@@ -79,11 +79,14 @@ func NewShellWithClient(url string, c *gohttp.Client) *Shell {
 			url = host
 		}
 	}
-
-	return &Shell{
-		url:     url,
-		httpcli: c,
+	var sh Shell
+	sh.url = url
+	sh.httpcli = *c
+	// We don't support redirects.
+	sh.httpcli.CheckRedirect = func(_ *gohttp.Request, _ []*gohttp.Request) error {
+		return fmt.Errorf("unexpected redirect")
 	}
+	return &sh
 }
 
 func (s *Shell) SetTimeout(d time.Duration) {
@@ -133,101 +136,6 @@ func (s *Shell) Cat(path string) (io.ReadCloser, error) {
 	}
 
 	return resp.Output, nil
-}
-
-type object struct {
-	Hash string
-}
-
-// Add a file to ipfs from the given reader, returns the hash of the added file
-func (s *Shell) Add(r io.Reader) (string, error) {
-	return s.AddWithOpts(r, true, false)
-}
-
-// AddNoPin a file to ipfs from the given reader, returns the hash of the added file without pinning the file
-func (s *Shell) AddNoPin(r io.Reader) (string, error) {
-	return s.AddWithOpts(r, false, false)
-}
-
-func (s *Shell) AddWithOpts(r io.Reader, pin bool, rawLeaves bool) (string, error) {
-	var rc io.ReadCloser
-	if rclose, ok := r.(io.ReadCloser); ok {
-		rc = rclose
-	} else {
-		rc = ioutil.NopCloser(r)
-	}
-
-	// handler expects an array of files
-	fr := files.NewReaderFile("", "", rc, nil)
-	slf := files.NewSliceFile("", "", []files.File{fr})
-	fileReader := files.NewMultiFileReader(slf, true)
-
-	var out object
-	return out.Hash, s.Request("add").
-		Option("progress", false).
-		Option("pin", pin).
-		Option("raw-leaves", rawLeaves).
-		Body(fileReader).
-		Exec(context.Background(), &out)
-}
-
-func (s *Shell) AddLink(target string) (string, error) {
-	link := files.NewLinkFile("", "", target, nil)
-	slf := files.NewSliceFile("", "", []files.File{link})
-	reader := files.NewMultiFileReader(slf, true)
-
-	var out object
-	return out.Hash, s.Request("add").Body(reader).Exec(context.Background(), &out)
-}
-
-// AddDir adds a directory recursively with all of the files under it
-func (s *Shell) AddDir(dir string) (string, error) {
-	stat, err := os.Lstat(dir)
-	if err != nil {
-		return "", err
-	}
-
-	sf, err := files.NewSerialFile(path.Base(dir), dir, false, stat)
-	if err != nil {
-		return "", err
-	}
-	slf := files.NewSliceFile("", dir, []files.File{sf})
-	reader := files.NewMultiFileReader(slf, true)
-
-	resp, err := s.Request("add").
-		Option("recursive", true).
-		Body(reader).
-		Send(context.Background())
-
-	if err != nil {
-		return "", nil
-	}
-
-	defer resp.Close()
-
-	if resp.Error != nil {
-		return "", resp.Error
-	}
-
-	dec := json.NewDecoder(resp.Output)
-	var final string
-	for {
-		var out object
-		err = dec.Decode(&out)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return "", err
-		}
-		final = out.Hash
-	}
-
-	if final == "" {
-		return "", errors.New("no results received")
-	}
-
-	return final, nil
 }
 
 const (
@@ -322,13 +230,14 @@ func (s *Shell) Refs(hash string, recursive bool) (<-chan string, error) {
 		return nil, err
 	}
 
-	defer resp.Close()
 	if resp.Error != nil {
+		resp.Close()
 		return nil, resp.Error
 	}
 
 	out := make(chan string)
 	go func() {
+		defer resp.Close()
 		var ref struct {
 			Ref string
 		}
@@ -373,8 +282,8 @@ func (s *Shell) PatchData(root string, set bool, data interface{}) (string, erro
 		cmd = "set-data"
 	}
 
-	fr := files.NewReaderFile("", "", ioutil.NopCloser(read), nil)
-	slf := files.NewSliceFile("", "", []files.File{fr})
+	fr := files.NewReaderFile(read)
+	slf := files.NewSliceDirectory([]files.DirEntry{files.FileEntry("", fr)})
 	fileReader := files.NewMultiFileReader(slf, true)
 
 	var out object
@@ -386,7 +295,7 @@ func (s *Shell) PatchData(root string, set bool, data interface{}) (string, erro
 func (s *Shell) PatchLink(root, path, childhash string, create bool) (string, error) {
 	var out object
 	return out.Hash, s.Request("object/patch/add-link", root, path, childhash).
-		Option("create", true).
+		Option("create", create).
 		Exec(context.Background(), &out)
 }
 
@@ -475,10 +384,8 @@ func (s *Shell) BlockPut(block []byte, format, mhtype string, mhlen int) (string
 		Key string
 	}
 
-	data := bytes.NewReader(block)
-	rc := ioutil.NopCloser(data)
-	fr := files.NewReaderFile("", "", rc, nil)
-	slf := files.NewSliceFile("", "", []files.File{fr})
+	fr := files.NewBytesFile(block)
+	slf := files.NewSliceDirectory([]files.DirEntry{files.FileEntry("", fr)})
 	fileReader := files.NewMultiFileReader(slf, true)
 
 	return out.Key, s.Request("block/put").
@@ -514,10 +421,8 @@ func (s *Shell) ObjectPut(obj *IpfsObject) (string, error) {
 		return "", err
 	}
 
-	rc := ioutil.NopCloser(&data)
-
-	fr := files.NewReaderFile("", "", rc, nil)
-	slf := files.NewSliceFile("", "", []files.File{fr})
+	fr := files.NewReaderFile(&data)
+	slf := files.NewSliceDirectory([]files.DirEntry{files.FileEntry("", fr)})
 	fileReader := files.NewMultiFileReader(slf, true)
 
 	var out object
@@ -541,7 +446,10 @@ func (s *Shell) PubSubPublish(topic, data string) (err error) {
 		return err
 	}
 	defer resp.Close()
-	return resp.Error
+	if resp.Error != nil {
+		return resp.Error
+	}
+	return nil
 }
 
 type ObjectStats struct {
