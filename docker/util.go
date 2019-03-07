@@ -1,6 +1,9 @@
 package docker
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 // ShortImageID returns the short version of an image ID
 func ShortImageID(imageID string) string {
@@ -8,10 +11,11 @@ func ShortImageID(imageID string) string {
 	return re.ReplaceAllString(imageID, `$2`)
 }
 
-// TestStripImageTagHost strips the host from an image tag
+// StripImageTagHost strips the host from an image tag
 func StripImageTagHost(imageTag string) string {
 	re := regexp.MustCompile(`(.*\..*?\/)?(.*)`)
 	matches := re.FindStringSubmatch(imageTag)
 	imageTag = matches[len(matches)-1]
+	imageTag = strings.TrimPrefix(imageTag, "library/")
 	return imageTag
 }

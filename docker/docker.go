@@ -35,10 +35,12 @@ func NewClient(config *Config) *Client {
 
 // newEnvClient returns a new client instance based on environment variables
 func newEnvClient(config *Config) *Client {
-	cl, err := client.NewEnvClient()
+	ctx := context.Background()
+	cl, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		log.Fatalf("[docker] %s", err)
 	}
+	cl.NegotiateAPIVersion(ctx)
 
 	return &Client{
 		client: cl,
@@ -97,13 +99,11 @@ func (c *Client) HasImage(imageID string) (bool, error) {
 func (c *Client) PullImage(imageID string) error {
 	reader, err := c.client.ImagePull(context.Background(), imageID, types.ImagePullOptions{})
 	if err != nil {
-		fmt.Errorf("[docker] error pulling image: %v", err)
-		return err
+		return fmt.Errorf("[docker] error pulling image: %v", err)
 	}
+	defer reader.Close()
 
-	if c.debug {
-		io.Copy(os.Stdout, reader)
-	}
+	io.Copy(ioutil.Discard, reader)
 
 	return nil
 }

@@ -1,15 +1,24 @@
 package docker
 
 import (
+	"context"
 	"io"
+	"io/ioutil"
 	"os"
 	"testing"
+
+	types "github.com/docker/docker/api/types"
+	dclient "github.com/docker/docker/client"
 )
 
 var (
-	testImage    = "docker.io/miguelmota/hello-world"
+	testImage    = "docker.io/library/alpine"
 	testImageTar = "hello-world.tar"
 )
+
+func init() {
+	createTestTar()
+}
 
 func TestNew(t *testing.T) {
 	client := createClient()
@@ -69,7 +78,7 @@ func TestReadImage(t *testing.T) {
 		t.Error(err)
 	}
 
-	io.Copy(os.Stdout, reader)
+	io.Copy(ioutil.Discard, reader)
 }
 
 func TestLoadImage(t *testing.T) {
@@ -140,6 +149,7 @@ func TestRemoveImage(t *testing.T) {
 }
 
 func TestRemoveAllImages(t *testing.T) {
+	t.Skip("Skipping TestRemoveAllImages... Comment skip call to run test. Caution it will remove all images.")
 	client := createClient()
 	err := client.RemoveAllImages()
 	if err != nil {
@@ -167,22 +177,32 @@ func createClient() *Client {
 }
 
 func createTestTar() {
-	client := createClient()
-	err := client.PullImage(testImage)
+	ctx := context.Background()
+	cli, err := dclient.NewClientWithOpts(dclient.FromEnv)
+	if err != nil {
+		panic(err)
+	}
+	cli.NegotiateAPIVersion(ctx)
+
+	pullR, err := cli.ImagePull(ctx, testImage, types.ImagePullOptions{})
 	if err != nil {
 		panic(err)
 	}
 
-	err = client.SaveImageTar(testImage, testImageTar)
+	io.Copy(ioutil.Discard, pullR)
+
+	saveR, err := cli.ImageSave(ctx, []string{testImage})
+
+	fo, err := os.Create(testImageTar)
 	if err != nil {
 		panic(err)
 	}
+
+	defer fo.Close()
+
+	io.Copy(fo, saveR)
 }
 
 func cleanUp() {
 	os.Remove(testImageTar)
-}
-
-func init() {
-	createTestTar()
 }

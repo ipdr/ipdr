@@ -132,7 +132,7 @@ func (client *Client) remoteRefs(hash string, recursive bool) (<-chan string, er
 	return out, nil
 }
 
-// RunDaemon rusn the IPFS daemon
+// RunDaemon runs the IPFS daemon
 func RunDaemon() error {
 	var err error
 	ready := make(chan bool)

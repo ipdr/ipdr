@@ -48,6 +48,8 @@ func TestStripImageTagHost(t *testing.T) {
 		{"docker.io/miguelmota/hello-world", "miguelmota/hello-world"},
 		{"miguelmota/hello-world:latest", "miguelmota/hello-world:latest"},
 		{"miguelmota/hello-world", "miguelmota/hello-world"},
+		{"docker.io/library/alpine:latest", "alpine:latest"},
+		{"docker.io/library/alpine", "alpine"},
 	} {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			got := StripImageTagHost(tt.in)
