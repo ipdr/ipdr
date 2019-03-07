@@ -36,7 +36,7 @@ jobs:
           name: Install IPFS
           command: |
             set -x
-            wget https://dist.ipfs.io/go-ipfs/v0.4.14/go-ipfs_v0.4.14_linux-amd64.tar.gz -O /tmp/go-ipfs.tar.gz
+            wget https://dist.ipfs.io/go-ipfs/v0.4.19/go-ipfs_v0.4.19_linux-amd64.tar.gz -O /tmp/go-ipfs.tar.gz
             cd /tmp
             tar xvfz go-ipfs.tar.gz
             sudo cp go-ipfs/ipfs /home/circleci/bin/
