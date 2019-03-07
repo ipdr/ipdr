@@ -83,7 +83,7 @@ High-level overview:
 - Add `docker.localhost` to `/etc/hosts`:
 
     ```hosts
-    127.0.0.1       docker.localhost
+    echo '127.0.0.1 docker.localhost' | sudo tee -a /etc/hosts
     ```
 
     - Flush local DNS cache:
