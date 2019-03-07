@@ -43,12 +43,11 @@ jobs:
             ipfs version
 
       - run:
-          name: Run IPFS daemon
+          name: Configure IPFS
           command: |
             ipfs init
             ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
             ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
-            ipfs daemon &
 
       - run: echo '127.0.0.1 docker.localhost' | sudo tee -a /etc/hosts
 
@@ -57,7 +56,7 @@ jobs:
       - run:
           name: Tests
           command: |
-            make test
+            ipfs daemon --offline & make test
 
 workflows:
   version: 2
