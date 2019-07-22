@@ -34,6 +34,8 @@ func main() {
 	var format string
 	var dockerRegistryHost string
 	var port uint
+	var tlsCrtPath string
+	var tlsKeyPath string
 	var silent bool
 
 	rootCmd := &cobra.Command{
@@ -138,6 +140,8 @@ More info: https://github.com/miguelmota/ipdr`,
 			srv := server.NewServer(&server.Config{
 				Port:  port,
 				Debug: !silent,
+				TLSKeyPath: tlsKeyPath,
+				TLSCrtPath: tlsCrtPath,
 			})
 
 			return srv.Start()
@@ -146,6 +150,8 @@ More info: https://github.com/miguelmota/ipdr`,
 
 	serverCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs")
 	serverCmd.Flags().UintVarP(&port, "port", "p", 5000, "The port for the Docker registry to listen on")
+	serverCmd.Flags().StringVarP(&tlsCrtPath, "tlsCrtPath", "", "", "The path to the .crt file for TLS")
+	serverCmd.Flags().StringVarP(&tlsKeyPath, "tlsKeyPath", "", "", "The path to the .key file for TLS")
 
 	convertCmd := &cobra.Command{
 		Use:   "convert",

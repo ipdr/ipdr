@@ -19,6 +19,8 @@ type Server struct {
 	listener    net.Listener
 	host        string
 	ipfsGateway string
+	tlsCrtPath 	string
+	tlsKeyPath	string
 }
 
 // Config is server config
@@ -26,6 +28,8 @@ type Config struct {
 	Debug       bool
 	Port        uint
 	IPFSGateway string
+	TLSCrtPath 	string
+	TLSKeyPath	string
 }
 
 // InfoResponse is response for manifest info response
@@ -59,6 +63,8 @@ func NewServer(config *Config) *Server {
 		host:        fmt.Sprintf("0.0.0.0:%v", port),
 		debug:       config.Debug,
 		ipfsGateway: ipfs.NormalizeGatewayURL(config.IPFSGateway),
+		tlsCrtPath:  config.TLSCrtPath,
+		tlsKeyPath:  config.TLSKeyPath,
 	}
 }
 
@@ -171,7 +177,9 @@ func (s *Server) Start() error {
 	}
 
 	s.Debugf("[registry/server] listening on %s", s.listener.Addr())
-
+	if s.tlsKeyPath != "" && s.tlsCrtPath != "" {
+		return http.ServeTLS(s.listener, nil, s.tlsCrtPath, s.tlsKeyPath)
+	}
 	return http.Serve(s.listener, nil)
 }
 
