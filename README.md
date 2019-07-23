@@ -272,6 +272,10 @@ make test
 
   - A: Use the `--port` flag, eg. `--port 5000`
 
+- Q: How can I use a HTTPS-secured registry when using `server`?
+
+  - A: Use the `--tlsKeyPath` and `--tlsCrPath` flag, eg. ` --tlsKeyPath path/server.key --tlsCrtPath path/server.crt`
+
 ## Contributing
 
 Pull requests are welcome!
