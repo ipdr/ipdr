@@ -114,7 +114,11 @@ func (s *Server) Start() error {
 		if strings.HasSuffix(uri, "/latest") {
 			// docker daemon requesting the manifest
 			suffix = "-v1"
+			// If multiple mediaTypes in Accept-Header cannot be resolved to an array split it by ','
 			accepts := r.Header["Accept"]
+			if len(accepts) == 1 && strings.Contains(accepts[0], ",") {
+				accepts = strings.Split(accepts[0], ",")
+			}
 			for _, accept := range accepts {
 				if accept == contentTypes["manifestV2Schema"] ||
 					accept == contentTypes["manifestListV2Schema"] {
