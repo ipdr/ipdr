@@ -142,6 +142,7 @@ More info: https://github.com/miguelmota/ipdr`,
 				Debug: !silent,
 				TLSKeyPath: tlsKeyPath,
 				TLSCrtPath: tlsCrtPath,
+				IPFSGateway: ipfsGateway,
 			})
 
 			return srv.Start()
@@ -152,6 +153,7 @@ More info: https://github.com/miguelmota/ipdr`,
 	serverCmd.Flags().UintVarP(&port, "port", "p", 5000, "The port for the Docker registry to listen on")
 	serverCmd.Flags().StringVarP(&tlsCrtPath, "tlsCrtPath", "", "", "The path to the .crt file for TLS")
 	serverCmd.Flags().StringVarP(&tlsKeyPath, "tlsKeyPath", "", "", "The path to the .key file for TLS")
+	serverCmd.Flags().StringVarP(&ipfsGateway, "ipfs-gateway", "g", "127.0.0.1:8080", "The readonly IPFS Gateway URL to pull the image from. Eg. https://ipfs.io")
 
 	convertCmd := &cobra.Command{
 		Use:   "convert",
