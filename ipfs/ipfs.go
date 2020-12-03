@@ -102,22 +102,30 @@ func (client *Client) GatewayURL() string {
 	return NormalizeGatewayURL(client.gatewayURL)
 }
 
-// removeRefs returns refs using the IPFS API
+// remoteRefs returns refs using the IPFS API
+// https://docs.ipfs.io/reference/http/api/#api-v0-refs
 func (client *Client) remoteRefs(hash string, recursive bool) (<-chan string, error) {
-	url := fmt.Sprintf("http://%s/api/v0/refs?arg=%s&recursive=%v", client.host, hash, recursive)
+	url := fmt.Sprintf("http://%s/api/v0/refs?arg=%s&max-depth=%s", client.host, hash, map[bool]string{true: "-1", false: "1"}[recursive])
 
-	resp, err := http.Get(url)
+	resp, err := http.Post(url, "application/json", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var ref struct {
-		Ref string
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Error: %s", resp.Status)
 	}
 
 	out := make(chan string)
-	dec := json.NewDecoder(resp.Body)
 	go func() {
+		defer resp.Body.Close()
+		defer close(out)
+
+		var ref struct {
+			Ref string
+		}
+		dec := json.NewDecoder(resp.Body)
+
 		for {
 			err := dec.Decode(&ref)
 			if err != nil {
