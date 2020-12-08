@@ -40,6 +40,15 @@ release:
 	@rm -rf dist
 	goreleaser
 
+docker-build:
+	docker build -t miguelmota/ipdr .
+
+docker-start:
+	docker run miguelmota/ipdr server
+
+docker-push:
+	docker push miguelmota/ipdr:latest
+
 .PHONY: help
 help: Makefile
 	@echo
