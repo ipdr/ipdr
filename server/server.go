@@ -1,15 +1,12 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
-	"strings"
 
 	ipfs "github.com/miguelmota/ipdr/ipfs"
-	regutil "github.com/miguelmota/ipdr/regutil"
+	"github.com/miguelmota/ipdr/server/registry"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,6 +15,7 @@ type Server struct {
 	debug       bool
 	listener    net.Listener
 	host        string
+	ipfsHost    string
 	ipfsGateway string
 	tlsCertPath string
 	tlsKeyPath  string
@@ -27,6 +25,7 @@ type Server struct {
 type Config struct {
 	Debug       bool
 	Port        uint
+	IPFSHost    string
 	IPFSGateway string
 	TLSCertPath string
 	TLSKeyPath  string
@@ -43,11 +42,6 @@ type InfoResponse struct {
 
 var projectURL = "https://github.com/miguelmota/ipdr"
 
-var contentTypes = map[string]string{
-	"manifestV2Schema":     "application/vnd.docker.distribution.manifest.v2+json",
-	"manifestListV2Schema": "application/vnd.docker.distribution.manifest.list.v2+json",
-}
-
 // NewServer returns a new server instance
 func NewServer(config *Config) *Server {
 	if config == nil {
@@ -62,6 +56,7 @@ func NewServer(config *Config) *Server {
 	return &Server{
 		host:        fmt.Sprintf("0.0.0.0:%v", port),
 		debug:       config.Debug,
+		ipfsHost:    config.IPFSHost,
 		ipfsGateway: ipfs.NormalizeGatewayURL(config.IPFSGateway),
 		tlsCertPath: config.TLSCertPath,
 		tlsKeyPath:  config.TLSKeyPath,
@@ -75,100 +70,14 @@ func (s *Server) Start() error {
 		return nil
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		uri := r.RequestURI
-		s.Debugf("[registry/server] %s", uri)
-
-		if uri == "/health" {
-			fmt.Fprintln(w, "OK")
-			return
-		}
-
-		if uri == "/v2/" {
-			jsonstr, err := json.Marshal(&InfoResponse{
-				Info:    "An IPFS-backed Docker registry",
-				Project: projectURL,
-				Gateway: s.ipfsGateway,
-				Handles: []string{
-					contentTypes["manifestListV2Schema"],
-					contentTypes["manifestV2Schema"],
-				},
-				Problematic: []string{"version 1 registries"},
-			})
-			if err != nil {
-				fmt.Fprintln(w, err)
-				return
-			}
-
-			w.Header().Set("Docker-Distribution-API-Version", "registry/2.0")
-			fmt.Fprintln(w, string(jsonstr))
-			return
-		}
-
-		if len(uri) <= 1 {
-			fmt.Fprintln(w, "invalid multihash")
-			return
-		}
-
-		var suffix string
-		if strings.HasSuffix(uri, "/latest") {
-			// docker daemon requesting the manifest
-			suffix = "-v1"
-			accepts := r.Header["Accept"]
-			for _, accept := range accepts {
-				if accept == contentTypes["manifestV2Schema"] ||
-					accept == contentTypes["manifestListV2Schema"] {
-					suffix = "-v2"
-					break
-				}
-			}
-		}
-
-		parts := strings.Split(uri, "/")
-		if len(parts) <= 2 {
-			fmt.Fprintln(w, "out of range")
-			return
-		}
-
-		hash := regutil.IpfsifyHash(parts[2])
-		rest := strings.Join(parts[3:], "/") // tag
-		path := hash + "/" + rest
-
-		// blob request
-		location := s.ipfsURL(path)
-
-		if suffix != "" {
-			// manifest request
-			location = location + suffix
-		}
-		s.Debugf("[registry/server] location %s", location)
-
-		req, err := http.NewRequest("GET", location, nil)
-		if err != nil {
-			fmt.Fprintf(w, err.Error())
-			return
-		}
-
-		httpClient := http.Client{}
-		resp, err := httpClient.Do(req)
-		if err != nil {
-			fmt.Fprintf(w, err.Error())
-			return
-		}
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Fprintf(w, err.Error())
-			return
-		}
-
-		//w.Header().Set("Location", location) // not required since we're fetching the content and proxying
-		w.Header().Set("Docker-Distribution-API-Version", "registry/2.0")
-
-		// if latest-v2 set header
-		w.Header().Set("Content-Type", contentTypes["manifestV2Schema"])
-		fmt.Fprintf(w, string(body))
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "OK")
 	})
+
+	http.Handle("/", registry.New(&registry.Config{
+		IPFSHost:    s.ipfsHost,
+		IPFSGateway: s.ipfsGateway,
+	}))
 
 	var err error
 	s.listener, err = net.Listen("tcp", s.host)
@@ -196,9 +105,4 @@ func (s *Server) Debugf(str string, args ...interface{}) {
 	if s.debug {
 		log.Printf(str, args...)
 	}
-}
-
-// ipfsURL returns the full IPFS url
-func (s *Server) ipfsURL(hash string) string {
-	return fmt.Sprintf("%s/ipfs/%s", s.ipfsGateway, hash)
 }

@@ -1,16 +1,21 @@
 package ipfs
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
 	api "github.com/ipfs/go-ipfs-api"
+	files "github.com/ipfs/go-ipfs-files"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -77,8 +82,54 @@ func (client *Client) Get(hash, outdir string) error {
 }
 
 // AddDir adds a directory to IPFS
+// https://github.com/ipfs/go-ipfs-api/blob/master/add.go#L99-L145
 func (client *Client) AddDir(dir string) (string, error) {
-	return client.client.AddDir(dir)
+	stat, err := os.Lstat(dir)
+	if err != nil {
+		return "", err
+	}
+
+	sf, err := files.NewSerialFile(dir, false, stat)
+	if err != nil {
+		return "", err
+	}
+	slf := files.NewSliceDirectory([]files.DirEntry{files.FileEntry(filepath.Base(dir), sf)})
+	reader := files.NewMultiFileReader(slf, true)
+
+	resp, err := client.client.Request("add").
+		Option("recursive", true).
+		Option("cid-version", 1).
+		Body(reader).
+		Send(context.Background())
+	if err != nil {
+		return "", nil
+	}
+
+	defer resp.Close()
+
+	if resp.Error != nil {
+		return "", resp.Error
+	}
+
+	dec := json.NewDecoder(resp.Output)
+	var final string
+	for {
+		var out object
+		err = dec.Decode(&out)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", err
+		}
+		final = out.Hash
+	}
+
+	if final == "" {
+		return "", errors.New("no results received")
+	}
+
+	return final, nil
 }
 
 // Refs returns the refs of an IPFS hash
@@ -138,6 +189,65 @@ func (client *Client) remoteRefs(hash string, recursive bool) (<-chan string, er
 	}()
 
 	return out, nil
+}
+
+type object struct {
+	Hash string
+}
+
+// AddImage adds components of an image recursively
+func (client *Client) AddImage(manifest map[string][]byte, layers map[string][]byte) (string, error) {
+	mf := make(map[string]files.Node)
+	for k, v := range manifest {
+		mf[k] = files.NewBytesFile(v)
+	}
+
+	bf := make(map[string]files.Node)
+	for k, v := range layers {
+		bf[k] = files.NewBytesFile(v)
+	}
+
+	sf := files.NewMapDirectory(map[string]files.Node{
+		"blobs":     files.NewMapDirectory(bf),
+		"manifests": files.NewMapDirectory(mf),
+	})
+	slf := files.NewSliceDirectory([]files.DirEntry{files.FileEntry("image", sf)})
+
+	reader := files.NewMultiFileReader(slf, true)
+	resp, err := client.client.Request("add").
+		Option("recursive", true).
+		Option("cid-version", 1).
+		Body(reader).
+		Send(context.Background())
+	if err != nil {
+		return "", nil
+	}
+
+	defer resp.Close()
+
+	if resp.Error != nil {
+		return "", resp.Error
+	}
+
+	dec := json.NewDecoder(resp.Output)
+	var final string
+	for {
+		var out object
+		err = dec.Decode(&out)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", err
+		}
+		final = out.Hash
+	}
+
+	if final == "" {
+		return "", errors.New("no results received")
+	}
+
+	return final, nil
 }
 
 // RunDaemon runs the IPFS daemon

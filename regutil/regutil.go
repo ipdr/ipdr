@@ -2,10 +2,13 @@ package regutil
 
 import (
 	"encoding/base32"
+	"fmt"
 	"regexp"
 	"strings"
 
+	cid "github.com/ipfs/go-cid"
 	base58 "github.com/jbenet/go-base58"
+	mbase "github.com/multiformats/go-multibase"
 )
 
 // DockerizeHash does base58 to base32 conversion
@@ -33,4 +36,41 @@ func IpfsifyHash(base32Hash string) string {
 	}
 
 	return base58.Encode(decodedB32)
+}
+
+func toCidV0(c cid.Cid) (cid.Cid, error) {
+	if c.Type() != cid.DagProtobuf {
+		return cid.Cid{}, fmt.Errorf("can't convert non-protobuf nodes to cidv0")
+	}
+	return cid.NewCidV0(c.Hash()), nil
+}
+
+func toCidV1(c cid.Cid) (cid.Cid, error) {
+	return cid.NewCidV1(c.Type(), c.Hash()), nil
+}
+
+// ToB58 returns base58 encoded string if s is a valid cid
+func ToB58(s string) string {
+	c, err := cid.Decode(s)
+	if err == nil {
+		return c.Hash().B58String()
+	}
+	return ""
+}
+
+// ToB32 returns base32 encoded string if s is a valid cid
+func ToB32(s string) string {
+	c, err := cid.Decode(s)
+	if err != nil {
+		return ""
+	}
+	c1, err := toCidV1(c)
+	if err != nil {
+		return ""
+	}
+	b32, err := c1.StringOfBase(mbase.Base32)
+	if err != nil {
+		return ""
+	}
+	return b32
 }

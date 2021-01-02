@@ -140,6 +140,7 @@ More info: https://github.com/miguelmota/ipdr`,
 			srv := server.NewServer(&server.Config{
 				Port:        port,
 				Debug:       !silent,
+				IPFSHost:    ipfsHost,
 				IPFSGateway: ipfsGateway,
 				TLSKeyPath:  tlsKeyPath,
 				TLSCertPath: tlsCertPath,
@@ -153,6 +154,7 @@ More info: https://github.com/miguelmota/ipdr`,
 	serverCmd.Flags().UintVarP(&port, "port", "p", 5000, "The port for the Docker registry to listen on")
 	serverCmd.Flags().StringVarP(&tlsCertPath, "tlsCertPath", "", "", "The path to the .crt file for TLS")
 	serverCmd.Flags().StringVarP(&tlsKeyPath, "tlsKeyPath", "", "", "The path to the .key file for TLS")
+	serverCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to pull the image from. Eg. 127.0.0.1:5001")
 	serverCmd.Flags().StringVarP(&ipfsGateway, "ipfs-gateway", "g", "127.0.0.1:8080", "The readonly IPFS Gateway URL to pull the image from. Eg. https://ipfs.io")
 
 	convertCmd := &cobra.Command{

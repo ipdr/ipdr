@@ -21,7 +21,6 @@ import (
 	docker "github.com/miguelmota/ipdr/docker"
 	ipfs "github.com/miguelmota/ipdr/ipfs"
 	netutil "github.com/miguelmota/ipdr/netutil"
-	regutil "github.com/miguelmota/ipdr/regutil"
 	server "github.com/miguelmota/ipdr/server"
 	log "github.com/sirupsen/logrus"
 )
@@ -138,7 +137,7 @@ func (r *Registry) PushImage(reader io.Reader) (string, error) {
 	}
 
 	r.Debugf("\n[registry] uploaded to /ipfs/%s\n", imageIpfsHash)
-	r.Debugf("[registry] docker image %s\n", regutil.DockerizeHash(imageIpfsHash))
+	r.Debugf("[registry] docker image %s\n", imageIpfsHash)
 
 	return imageIpfsHash, nil
 }
@@ -162,8 +161,8 @@ func (r *Registry) DownloadImage(ipfsHash string) (string, error) {
 // PullImage pulls the Docker image from IPFS
 func (r *Registry) PullImage(ipfsHash string) (string, error) {
 	r.runServer()
-	dockerizedHash := regutil.DockerizeHash(ipfsHash)
-	dockerPullImageID := fmt.Sprintf("%s/%s", r.dockerLocalRegistryHost, dockerizedHash)
+	// dockerizedHash := regutil.DockerizeHash(ipfsHash)
+	dockerPullImageID := fmt.Sprintf("%s/%s", r.dockerLocalRegistryHost, ipfsHash)
 
 	r.Debugf("[registry] attempting to pull %s", dockerPullImageID)
 	err := r.dockerClient.PullImage(dockerPullImageID)
@@ -262,20 +261,31 @@ func (r *Registry) ipfsPrep(tmp string) (string, error) {
 		return "", errors.New("image archive must be produced by docker > 1.10")
 	}
 
-	configDest := fmt.Sprintf("%s/blobs/sha256:%s", workdir, string(configFile[:len(configFile)-5]))
+	configDigest := "sha256:" + string(configFile[:len(configFile)-5])
+	configDest := fmt.Sprintf("%s/blobs/%s", workdir, configDigest)
 	r.Debugf("\n[registry] dist: %s", configDest)
-	mkdir(configDest)
-	if err := copyFile(tmp+"/"+configFile, configDest+"/"+configFile); err != nil {
+
+	if err := copyFile(tmp+"/"+configFile, configDest); err != nil {
 		return "", err
 	}
 
-	mf, err := r.makeV2Manifest(manifest, configFile, configDest, tmp, workdir)
+	mf, err := r.makeV2Manifest(manifest, configDigest, configDest, tmp, workdir)
 	if err != nil {
 		return "", err
 	}
 
-	err = writeJSON(mf, workdir+"/manifests/latest-v2")
-	if err != nil {
+	writeManifest := func() error {
+		if err = writeJSON(mf, workdir+"/manifests/latest"); err != nil {
+			return err
+		}
+		data, err := json.Marshal(mf)
+		if err != nil {
+			return err
+		}
+		rd := sha256.Sum256(data)
+		return writeJSON(mf, workdir+"/manifests/sha256:"+hex.EncodeToString(rd[:]))
+	}
+	if err := writeManifest(); err != nil {
 		return "", err
 	}
 
@@ -389,14 +399,14 @@ func writeJSON(idate interface{}, path string) error {
 }
 
 // produce v2 manifest of type/application/vnd.docker.distribution.manifest.v2+json
-func (r *Registry) makeV2Manifest(manifest map[string]interface{}, configFile, configDest, tmp, workdir string) (map[string]interface{}, error) {
+func (r *Registry) makeV2Manifest(manifest map[string]interface{}, configDigest, configDest, tmp, workdir string) (map[string]interface{}, error) {
 	v2manifest, err := r.prepareV2Manifest(manifest, tmp, workdir+"/blobs")
 	if err != nil {
 		return nil, err
 	}
 	config := make(map[string]interface{})
-	config["digest"] = "sha256:" + string(configFile[:len(configFile)-5])
-	config["size"], err = fileSize(configDest + "/" + configFile)
+	config["digest"] = configDigest
+	config["size"], err = fileSize(configDest)
 	if err != nil {
 		return nil, err
 	}
