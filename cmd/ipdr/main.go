@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	color "github.com/fatih/color"
 	registry "github.com/miguelmota/ipdr/registry"
@@ -37,6 +38,9 @@ func main() {
 	var tlsCertPath string
 	var tlsKeyPath string
 	var silent bool
+	var cidResolvers []string
+	var cidStorePath string
+	var shortFormat bool
 
 	rootCmd := &cobra.Command{
 		Use:   "ipdr",
@@ -137,17 +141,28 @@ More info: https://github.com/miguelmota/ipdr`,
 		Short: "Start IPFS-backed Docker registry server",
 		Long:  "Start the IPFS-backed Docker registry server that proxies images stored on IPFS to Docker registry format",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := ensureCIDStorePath(cidStorePath); err != nil {
+				return err
+			}
+
 			srv := server.NewServer(&server.Config{
-				Port:        port,
-				Debug:       !silent,
-				IPFSHost:    ipfsHost,
-				IPFSGateway: ipfsGateway,
-				TLSKeyPath:  tlsKeyPath,
-				TLSCertPath: tlsCertPath,
+				Port:         port,
+				Debug:        !silent,
+				IPFSHost:     ipfsHost,
+				IPFSGateway:  ipfsGateway,
+				CIDResolvers: cidResolvers,
+				CIDStorePath: cidStorePath,
+				TLSKeyPath:   tlsKeyPath,
+				TLSCertPath:  tlsCertPath,
 			})
 
 			return srv.Start()
 		},
+	}
+
+	defaultCIDStore, _ := os.UserHomeDir()
+	if defaultCIDStore != "" {
+		defaultCIDStore = filepath.Join(defaultCIDStore, ".ipdr/cids")
 	}
 
 	serverCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs")
@@ -156,6 +171,8 @@ More info: https://github.com/miguelmota/ipdr`,
 	serverCmd.Flags().StringVarP(&tlsKeyPath, "tlsKeyPath", "", "", "The path to the .key file for TLS")
 	serverCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to pull the image from. Eg. 127.0.0.1:5001")
 	serverCmd.Flags().StringVarP(&ipfsGateway, "ipfs-gateway", "g", "127.0.0.1:8080", "The readonly IPFS Gateway URL to pull the image from. Eg. https://ipfs.io")
+	serverCmd.Flags().StringArrayVar(&cidResolvers, "cid-resolver", []string{"file:" + defaultCIDStore, "oci.dhnt.io"}, "Map repo:reference to CID. Accepts dnslink, IPFS path, and local file path.")
+	serverCmd.Flags().StringVar(&cidStorePath, "cid-store", defaultCIDStore, "CID local store location")
 
 	convertCmd := &cobra.Command{
 		Use:   "convert",
@@ -191,14 +208,43 @@ More info: https://github.com/miguelmota/ipdr`,
 
 	convertCmd.Flags().StringVarP(&format, "format", "f", "", "Output format which can be \"docker\" or \"ipfs\"")
 
+	digCmd := &cobra.Command{
+		Use:   "dig name[:tag]",
+		Short: "Lookup CID by image name[:tag]",
+		Long:  "Interrogate registry server and return CID in short form or manifest content otherwise.",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return ErrOnlyOneArgumentRequired
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := regutil.Dig(dockerRegistryHost, shortFormat, args[0])
+			if err != nil {
+				fmt.Println(err.Error())
+			} else {
+				fmt.Print(s)
+			}
+			return nil
+		},
+	}
+
+	digCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
+	digCmd.Flags().BoolVar(&shortFormat, "short", true, "CID or manifest content")
+
 	rootCmd.AddCommand(
 		pushCmd,
 		pullCmd,
 		serverCmd,
 		convertCmd,
+		digCmd,
 	)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+func ensureCIDStorePath(location string) error {
+	return os.MkdirAll(location, os.ModePerm)
 }

@@ -3,6 +3,8 @@ package regutil
 import (
 	"encoding/base32"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -36,6 +38,11 @@ func IpfsifyHash(base32Hash string) string {
 	}
 
 	return base58.Encode(decodedB32)
+}
+
+// IpfsURL constructs IPFS gateway URL
+func IpfsURL(gw string, s []string) string {
+	return fmt.Sprintf("%s/ipfs/%s", gw, strings.Join(s, "/"))
 }
 
 func toCidV0(c cid.Cid) (cid.Cid, error) {
@@ -73,4 +80,23 @@ func ToB32(s string) string {
 		return ""
 	}
 	return b32
+}
+
+// Dig interrogates registry server. It performs CID lookups and shows the response.
+func Dig(gw string, short bool, name string) (string, error) {
+	uri := fmt.Sprintf("http://%s/dig?q=%s&short=%v", gw, name, short)
+
+	resp, err := http.Get(uri)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf(resp.Status)
+	}
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }

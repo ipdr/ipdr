@@ -12,23 +12,27 @@ import (
 
 // Server is server structure
 type Server struct {
-	debug       bool
-	listener    net.Listener
-	host        string
-	ipfsHost    string
-	ipfsGateway string
-	tlsCertPath string
-	tlsKeyPath  string
+	debug        bool
+	listener     net.Listener
+	host         string
+	ipfsHost     string
+	ipfsGateway  string
+	cidResolvers []string
+	cidStorePath string
+	tlsCertPath  string
+	tlsKeyPath   string
 }
 
 // Config is server config
 type Config struct {
-	Debug       bool
-	Port        uint
-	IPFSHost    string
-	IPFSGateway string
-	TLSCertPath string
-	TLSKeyPath  string
+	Debug        bool
+	Port         uint
+	IPFSHost     string
+	IPFSGateway  string
+	CIDResolvers []string
+	CIDStorePath string
+	TLSCertPath  string
+	TLSKeyPath   string
 }
 
 // InfoResponse is response for manifest info response
@@ -54,12 +58,14 @@ func NewServer(config *Config) *Server {
 	}
 
 	return &Server{
-		host:        fmt.Sprintf("0.0.0.0:%v", port),
-		debug:       config.Debug,
-		ipfsHost:    config.IPFSHost,
-		ipfsGateway: ipfs.NormalizeGatewayURL(config.IPFSGateway),
-		tlsCertPath: config.TLSCertPath,
-		tlsKeyPath:  config.TLSKeyPath,
+		host:         fmt.Sprintf("0.0.0.0:%v", port),
+		debug:        config.Debug,
+		ipfsHost:     config.IPFSHost,
+		ipfsGateway:  ipfs.NormalizeGatewayURL(config.IPFSGateway),
+		cidResolvers: config.CIDResolvers,
+		cidStorePath: config.CIDStorePath,
+		tlsCertPath:  config.TLSCertPath,
+		tlsKeyPath:   config.TLSKeyPath,
 	}
 }
 
@@ -75,8 +81,10 @@ func (s *Server) Start() error {
 	})
 
 	http.Handle("/", registry.New(&registry.Config{
-		IPFSHost:    s.ipfsHost,
-		IPFSGateway: s.ipfsGateway,
+		IPFSHost:     s.ipfsHost,
+		IPFSGateway:  s.ipfsGateway,
+		CIDResolvers: s.cidResolvers,
+		CIDStorePath: s.cidStorePath,
 	}))
 
 	var err error

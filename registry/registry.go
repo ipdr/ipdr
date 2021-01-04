@@ -79,17 +79,17 @@ func NewRegistry(config *Config) *Registry {
 // PushImageByID uploads Docker image by image ID, which is hash or repo tag, to IPFS
 func (r *Registry) PushImageByID(imageID string) (string, error) {
 	// normalize image ID
-	imageID, err := r.TagToImageID(imageID)
+	id, err := r.TagToImageID(imageID)
 	if err != nil {
 		return "", err
 	}
 
-	reader, err := r.dockerClient.ReadImage(imageID)
+	reader, err := r.dockerClient.ReadImage(id)
 	if err != nil {
 		return "", err
 	}
 
-	return r.PushImage(reader)
+	return r.PushImage(reader, imageID)
 }
 
 // TagToImageID returns the image ID given a repo tag
@@ -114,7 +114,7 @@ func (r *Registry) TagToImageID(imageID string) (string, error) {
 }
 
 // PushImage uploads the Docker image to IPFS
-func (r *Registry) PushImage(reader io.Reader) (string, error) {
+func (r *Registry) PushImage(reader io.Reader, imageID string) (string, error) {
 	tmp, err := mktmp()
 	if err != nil {
 		return "", err
@@ -125,7 +125,7 @@ func (r *Registry) PushImage(reader io.Reader) (string, error) {
 		return "", err
 	}
 
-	root, err := r.ipfsPrep(tmp)
+	root, err := r.ipfsPrep(tmp, imageID)
 	if err != nil {
 		return "", err
 	}
@@ -211,7 +211,7 @@ func (r *Registry) runServer() {
 }
 
 // ipfsPrep formats the image data into a registry compatible format
-func (r *Registry) ipfsPrep(tmp string) (string, error) {
+func (r *Registry) ipfsPrep(tmp string, imageID string) (string, error) {
 	root, err := mktmp()
 	if err != nil {
 		return "", err
@@ -274,8 +274,26 @@ func (r *Registry) ipfsPrep(tmp string) (string, error) {
 		return "", err
 	}
 
+	ref := func(s string) string {
+		//name:tag
+		//sha256:hex
+		if strings.Index(s, "sha256:") != -1 {
+			return "latest"
+		}
+		ss := strings.SplitN(s, ":", 2)
+		if len(ss) == 2 {
+			return ss[1]
+		}
+		return "latest"
+	}
 	writeManifest := func() error {
-		if err = writeJSON(mf, workdir+"/manifests/latest"); err != nil {
+		tag := ref(imageID)
+		if tag != "latest" {
+			if err = writeJSON(mf, workdir+"/manifests/latest"); err != nil {
+				return err
+			}
+		}
+		if err = writeJSON(mf, workdir+"/manifests/"+tag); err != nil {
 			return err
 		}
 		data, err := json.Marshal(mf)

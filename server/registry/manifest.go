@@ -20,7 +20,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync"
@@ -33,6 +32,7 @@ import (
 type manifest struct {
 	contentType string
 	blob        []byte
+	digest      string // computed
 }
 
 type manifests struct {
@@ -64,21 +64,13 @@ func (m *manifests) handle(resp http.ResponseWriter, req *http.Request) *regErro
 		m.lock.Lock()
 		defer m.lock.Unlock()
 
-		if _, ok := m.manifests[repo]; !ok {
-			m.manifests[repo] = map[string]*manifest{}
-		}
-		mf, ok := m.manifests[repo][target]
-		if !ok {
-			f, err := m.fetchManifest(repo, target)
-			if err != nil {
-				return &regError{
-					Status:  http.StatusNotFound,
-					Code:    "MANIFEST_UNKNOWN",
-					Message: err.Error(),
-				}
+		mf, err := m.fetch(repo, target)
+		if err != nil {
+			return &regError{
+				Status:  http.StatusNotFound,
+				Code:    "MANIFEST_UNKNOWN",
+				Message: err.Error(),
 			}
-			m.manifests[repo][target] = f
-			mf = f
 		}
 
 		// Prepare reverse lookup by digest for pulling blobs from IPFS
@@ -91,13 +83,12 @@ func (m *manifests) handle(resp http.ResponseWriter, req *http.Request) *regErro
 			}
 		}
 		f, _ := image.DecodeManifest(mf.blob)
+
 		for _, d := range f.Digests() {
-			m.registry.cids.add(repo, d, cid)
+			m.registry.cids.Add(repo, d, cid)
 		}
 
-		rd := sha256.Sum256(mf.blob)
-		d := "sha256:" + hex.EncodeToString(rd[:])
-		resp.Header().Set("Docker-Content-Digest", d)
+		resp.Header().Set("Docker-Content-Digest", mf.digest)
 		resp.Header().Set("X-Docker-Content-ID", cid)
 		resp.Header().Set("Content-Type", mf.contentType)
 		resp.Header().Set("Content-Length", fmt.Sprint(len(mf.blob)))
@@ -110,25 +101,16 @@ func (m *manifests) handle(resp http.ResponseWriter, req *http.Request) *regErro
 		m.lock.Lock()
 		defer m.lock.Unlock()
 
-		if _, ok := m.manifests[repo]; !ok {
-			m.manifests[repo] = map[string]*manifest{}
-		}
-		mf, ok := m.manifests[repo][target]
-		if !ok {
-			f, err := m.fetchManifest(repo, target)
-			if err != nil {
-				return &regError{
-					Status:  http.StatusNotFound,
-					Code:    "MANIFEST_UNKNOWN",
-					Message: err.Error(),
-				}
+		mf, err := m.fetch(repo, target)
+		if err != nil {
+			return &regError{
+				Status:  http.StatusNotFound,
+				Code:    "MANIFEST_UNKNOWN",
+				Message: err.Error(),
 			}
-			m.manifests[repo][target] = f
-			mf = f
 		}
-		rd := sha256.Sum256(mf.blob)
-		d := "sha256:" + hex.EncodeToString(rd[:])
-		resp.Header().Set("Docker-Content-Digest", d)
+
+		resp.Header().Set("Docker-Content-Digest", mf.digest)
 		resp.Header().Set("Content-Type", mf.contentType)
 		resp.Header().Set("Content-Length", fmt.Sprint(len(mf.blob)))
 		resp.WriteHeader(http.StatusOK)
@@ -138,13 +120,14 @@ func (m *manifests) handle(resp http.ResponseWriter, req *http.Request) *regErro
 	if req.Method == "PUT" {
 		m.lock.Lock()
 		defer m.lock.Unlock()
+
 		if _, ok := m.manifests[repo]; !ok {
 			m.manifests[repo] = map[string]*manifest{}
 		}
 		b := &bytes.Buffer{}
 		io.Copy(b, req.Body)
-		rd := sha256.Sum256(b.Bytes())
-		digest := "sha256:" + hex.EncodeToString(rd[:])
+
+		digest := computeDigest(b.Bytes())
 		mf := manifest{
 			blob:        b.Bytes(),
 			contentType: req.Header.Get("Content-Type"),
@@ -189,10 +172,14 @@ func (m *manifests) handle(resp http.ResponseWriter, req *http.Request) *regErro
 				Message: fmt.Sprintf("layers for %q not found", repo),
 			}
 		}
+
+		// TODO cache e.g. move to disk?
 		m.registry.blobs.remove(repo)
+
 		refs := make(map[string][]byte)
 		refs[target] = mf.blob
 		refs[digest] = mf.blob
+		refs["latest"] = mf.blob // <cid>/latest
 
 		cid, err := m.registry.ipfsClient.AddImage(refs, layers)
 		if err != nil {
@@ -203,9 +190,9 @@ func (m *manifests) handle(resp http.ResponseWriter, req *http.Request) *regErro
 			}
 		}
 
-		m.registry.cids.add(repo, target, cid)
-		m.registry.cids.add(repo, digest, cid)
-		m.registry.cids.add(cid, "latest", cid)
+		m.registry.cids.Add(repo, target, cid)
+		m.registry.cids.Add(repo, digest, cid)
+		m.registry.cids.Add(cid, "latest", cid) // <cid>/latest
 
 		resp.Header().Set("Docker-Content-Digest", digest)
 		resp.Header().Set("X-Docker-Content-ID", cid)
@@ -219,21 +206,43 @@ func (m *manifests) handle(resp http.ResponseWriter, req *http.Request) *regErro
 	}
 }
 
-func (m *manifests) fetchManifest(repo, target string) (*manifest, error) {
+func (m *manifests) fetch(repo, target string) (*manifest, error) {
+	if _, ok := m.manifests[repo]; !ok {
+		m.manifests[repo] = map[string]*manifest{}
+	}
+	mf, ok := m.manifests[repo][target]
+	if ok {
+		return mf, nil
+	}
+
 	cid, err := m.registry.resolveCID(repo, target)
 	if err != nil {
 		return nil, err
 	}
-	uri := m.registry.ipfsURL([]string{cid, "manifests", target})
-	resp, err := http.Get(uri)
+
+	mf, err = m.getManifest(cid, target)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("cid: %s %s", cid, resp.Status)
-	}
-	b, err := ioutil.ReadAll(resp.Body)
+
+	m.manifests[repo][target] = mf
+	m.manifests[repo][mf.digest] = mf
+
+	// conform to the distribution registry specification
+	// in case target is tag, we need to resolve also by hash.
+	m.registry.cids.Add(repo, mf.digest, cid)
+
+	return mf, nil
+}
+
+func computeDigest(b []byte) string {
+	rd := sha256.Sum256(b)
+	d := "sha256:" + hex.EncodeToString(rd[:])
+	return d
+}
+
+func (m *manifests) getManifest(cid, target string) (*manifest, error) {
+	b, err := getContent(m.registry.config.IPFSGateway, cid, []string{"manifests", target})
 	if err != nil {
 		return nil, err
 	}
@@ -241,8 +250,10 @@ func (m *manifests) fetchManifest(repo, target string) (*manifest, error) {
 	if err != nil {
 		return nil, err
 	}
+	digest := computeDigest(b)
 	return &manifest{
 		blob:        b,
 		contentType: mf.MediaType,
+		digest:      digest,
 	}, nil
 }

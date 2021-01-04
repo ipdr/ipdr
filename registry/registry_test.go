@@ -26,7 +26,7 @@ func TestPushImage(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	ipfsHash, err := registry.PushImage(reader)
+	ipfsHash, err := registry.PushImage(reader, "name:tag")
 	if err != nil {
 		t.Error(err)
 	}

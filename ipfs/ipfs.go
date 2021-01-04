@@ -76,9 +76,19 @@ func NewRemoteClient(config *Config) *Client {
 	}
 }
 
+// Cat the content at the given path. Callers need to drain and close the returned reader after usage.
+func (client *Client) Cat(path string) (io.ReadCloser, error) {
+	return client.client.Cat(path)
+}
+
 // Get fetches the contents and outputs into a directory
 func (client *Client) Get(hash, outdir string) error {
 	return client.client.Get(hash, outdir)
+}
+
+// List entries at the given path
+func (client *Client) List(path string) ([]*api.LsLink, error) {
+	return client.client.List(path)
 }
 
 // AddDir adds a directory to IPFS
