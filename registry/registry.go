@@ -161,7 +161,6 @@ func (r *Registry) DownloadImage(ipfsHash string) (string, error) {
 // PullImage pulls the Docker image from IPFS
 func (r *Registry) PullImage(ipfsHash string) (string, error) {
 	r.runServer()
-	// dockerizedHash := regutil.DockerizeHash(ipfsHash)
 	dockerPullImageID := fmt.Sprintf("%s/%s", r.dockerLocalRegistryHost, ipfsHash)
 
 	r.Debugf("[registry] attempting to pull %s", dockerPullImageID)

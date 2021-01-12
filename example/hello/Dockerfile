@@ -1,5 +1,5 @@
-# local.dhnt.io resolves to 127.0.0.1
-FROM local.dhnt.io:5000/busybox:latest
+# FROM docker.local:5000/bafybeiggczzj2uh7gilh2dpolkwdlfwmonkdarezl25k4tsz4kp2c5ydhm
+FROM docker.local:5000/busybox:latest
 
 ARG REPO_NAME="ipfs"
 ENV REPO_NAME=${REPO_NAME}

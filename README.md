@@ -80,10 +80,10 @@ High-level overview:
     Daemon is ready
     ```
 
-- Add `docker.localhost` to `/etc/hosts`:
+- Add `docker.local` to `/etc/hosts`:
 
     ```hosts
-    echo '127.0.0.1 docker.localhost' | sudo tee -a /etc/hosts
+    echo '127.0.0.1 docker.local' | sudo tee -a /etc/hosts
     ```
 
     - Flush local DNS cache:
@@ -149,29 +149,29 @@ High-level overview:
     $ ipdr pull /ipfs/QmagW4H1uE5rkm8A6iVS8WuiyjcWQzqXRHbM3KuUfzrCup
 
     INFO[0000] [registry/server] port 5000
-    INFO[0000] [registry] attempting to pull docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
+    INFO[0000] [registry] attempting to pull docker.local:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
     INFO[0000] [registry/server] /v2/
     INFO[0000] [registry/server] /v2/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi/manifests/latest
     INFO[0000] [registry/server] location http://127.0.0.1:8080/ipfs/Qmc2ot2NQadXmbvPbsidyjYDvPfPwKZmovzNpfRPKxXUrL/manifests/latest-v2
     {"status":"Pulling from ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi","id":"latest"}
     {"status":"Digest: sha256:1fb36e4704d6ebad5becdcfe996807de5f8db687da396330f112157c888c165b"}
-    {"status":"Status: Downloaded newer image for docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi:latest"}
+    {"status":"Status: Downloaded newer image for docker.local:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi:latest"}
 
     Successfully pulled Docker image from IPFS:
-    docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
+    docker.local:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
     ```
 
 - Run image pulled from IPFS:
 
     ```bash
-    $ docker run docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
+    $ docker run docker.local:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
     hello world
     ```
 
 - Retag Docker image:
 
     ```bash
-    $ docker tag docker.localhost:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi example/helloworld:latest
+    $ docker tag docker.local:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi example/helloworld:latest
     ```
 
 - You can also pull the image using `docker pull`:
@@ -193,17 +193,17 @@ High-level overview:
     - Now you can `docker pull` the image from IPFS:
 
         ```bash
-        $ docker pull docker.localhost:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
+        $ docker pull docker.local:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
         Using default tag: latest
         latest: Pulling from ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
         Digest: sha256:6b787c9e04c2038d4b3cb0392417abdddfcfd88e10005d970fc751cdcfd6d895
-        Status: Downloaded newer image for docker.localhost:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y:latest
+        Status: Downloaded newer image for docker.local:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y:latest
         ```
 
         Test run:
 
         ```bash
-        $ docker run docker.localhost:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
+        $ docker run docker.local:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
         hello world
         ```
 
@@ -276,11 +276,17 @@ make test
 
   - A: Use the `--tlsKeyPath` and `--tlsCertPath` flag, eg. ` --tlsKeyPath path/server.key --tlsCertPath path/server.crt`
 
+- Q: How do I get `docker.local` to work?
+
+  - A: Make sure to add `127.0.0.1  docker.local` to `/etc/hosts`
+
 ## Contributing
 
 Pull requests are welcome!
 
 For contributions please create a new branch and submit a pull request for review.
+
+_Many thanks to [@qiangli](https://github.com/qiangli) and all the [contributors](https://github.com/miguelmota/ipdr/graphs/contributors) that made this package better._
 
 ## Resources
 

@@ -22,14 +22,14 @@ function build_run {
 
     # test run
     docker run $1
-} 
+}
 
 function cleanup {
     docker rmi -f $(docker image ls -q $1)
 }
 
 #
-my=local.dhnt.io:5000
+my=docker.local:5000
 
 ###
 repo_name="hello:v0.0.1-b$RANDOM"
@@ -105,3 +105,4 @@ docker run "$REPO_TAG"
 
 # clean up
 cleanup $repo_name
+echo "test complete."

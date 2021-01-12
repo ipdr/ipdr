@@ -92,7 +92,7 @@ More info: https://github.com/miguelmota/ipdr`,
 
 	pushCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs and outputs only IPFS hash")
 	pushCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to push the image to. Eg. 127.0.0.1:5001")
-	pushCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
+	pushCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.local:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.local:5000")
 
 	pullCmd := &cobra.Command{
 		Use:   "pull",
@@ -134,7 +134,7 @@ More info: https://github.com/miguelmota/ipdr`,
 	pullCmd.Flags().BoolVarP(&silent, "silent", "s", false, "Silent flag suppresses logs and outputs only Docker repo tag")
 	pullCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to pull the image from. Eg. 127.0.0.1:5001")
 	pullCmd.Flags().StringVarP(&ipfsGateway, "ipfs-gateway", "g", "127.0.0.1:8080", "The readonly IPFS Gateway URL to pull the image from. Eg. https://ipfs.io")
-	pullCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
+	pullCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.local:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.local:5000")
 
 	serverCmd := &cobra.Command{
 		Use:   "server",
@@ -171,7 +171,7 @@ More info: https://github.com/miguelmota/ipdr`,
 	serverCmd.Flags().StringVarP(&tlsKeyPath, "tlsKeyPath", "", "", "The path to the .key file for TLS")
 	serverCmd.Flags().StringVarP(&ipfsHost, "ipfs-host", "", "127.0.0.1:5001", "A remote IPFS API host to pull the image from. Eg. 127.0.0.1:5001")
 	serverCmd.Flags().StringVarP(&ipfsGateway, "ipfs-gateway", "g", "127.0.0.1:8080", "The readonly IPFS Gateway URL to pull the image from. Eg. https://ipfs.io")
-	serverCmd.Flags().StringArrayVar(&cidResolvers, "cid-resolver", []string{"file:" + defaultCIDStore, "oci.dhnt.io"}, "Map repo:reference to CID. Accepts dnslink, IPFS path, and local file path.")
+	serverCmd.Flags().StringArrayVar(&cidResolvers, "cid-resolver", []string{"file:" + defaultCIDStore}, "Map repo:reference to CID. Accepts dnslink, IPFS path, and local file path.")
 	serverCmd.Flags().StringVar(&cidStorePath, "cid-store", defaultCIDStore, "CID local store location")
 
 	convertCmd := &cobra.Command{
@@ -229,7 +229,7 @@ More info: https://github.com/miguelmota/ipdr`,
 		},
 	}
 
-	digCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.localhost:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.localhost:5000")
+	digCmd.Flags().StringVarP(&dockerRegistryHost, "docker-registry-host", "", "docker.local:5000", "The Docker local registry host. Eg. 127.0.0.1:5000 Eg. docker.local:5000")
 	digCmd.Flags().BoolVar(&shortFormat, "short", true, "CID or manifest content")
 
 	rootCmd.AddCommand(

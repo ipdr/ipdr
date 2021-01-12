@@ -51,7 +51,7 @@ func TestExtractPort(t *testing.T) {
 	}{
 		{"0.0.0.0:5000", 5000},
 		{":5000", 5000},
-		{"docker.localhost:5000", 5000},
+		{"docker.local:5000", 5000},
 		{"a123.com:5000", 5000},
 		{"5000", 5000},
 		{"", 0},

@@ -116,7 +116,7 @@ func createClient() *docker.Client {
 
 func createRegistry() *Registry {
 	registry := NewRegistry(&Config{
-		DockerLocalRegistryHost: "docker.localhost:5000",
+		DockerLocalRegistryHost: "docker.local:5000",
 		IPFSHost:                "127.0.0.1:5001",
 	})
 
