@@ -26,6 +26,8 @@ import (
 	"path"
 	"strings"
 	"sync"
+
+	"github.com/miguelmota/ipdr/netutil"
 )
 
 // Returns whether this url should be handled by the blob handler
@@ -148,7 +150,7 @@ func (b *blobs) handle(resp http.ResponseWriter, req *http.Request) *regError {
 			}
 		}
 		uri := b.registry.ipfsURL([]string{cid, "blobs", target})
-		ipfsResp, err := http.Get(uri)
+		ipfsResp, err := netutil.Get(uri)
 		if err != nil {
 			return &regError{
 				Status:  http.StatusNotFound,

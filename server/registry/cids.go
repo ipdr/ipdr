@@ -18,9 +18,6 @@ type cidStore struct {
 }
 
 func key(repo, ref string) string {
-	if ref == "" {
-		ref = "latest"
-	}
 	return repo + ":" + ref
 }
 

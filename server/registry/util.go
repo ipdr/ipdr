@@ -5,12 +5,13 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/miguelmota/ipdr/netutil"
 	"github.com/miguelmota/ipdr/regutil"
 )
 
 func getContent(gw string, cid string, s []string) ([]byte, error) {
 	uri := regutil.IpfsURL(gw, append([]string{cid}, s...))
-	resp, err := http.Get(uri)
+	resp, err := netutil.Get(uri)
 	if err != nil {
 		return nil, err
 	}
