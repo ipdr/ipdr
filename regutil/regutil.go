@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/miguelmota/ipdr/netutil"
+
 	cid "github.com/ipfs/go-cid"
 	base58 "github.com/jbenet/go-base58"
 	mbase "github.com/multiformats/go-multibase"
@@ -86,7 +88,7 @@ func ToB32(s string) string {
 func Dig(gw string, short bool, name string) (string, error) {
 	uri := fmt.Sprintf("http://%s/dig?q=%s&short=%v", gw, name, short)
 
-	resp, err := http.Get(uri)
+	resp, err := netutil.Get(uri)
 	if err != nil {
 		return "", err
 	}

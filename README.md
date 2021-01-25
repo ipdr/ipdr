@@ -84,6 +84,7 @@ High-level overview:
 
     ```hosts
     echo '127.0.0.1 docker.local' | sudo tee -a /etc/hosts
+    echo '::1       docker.local' | sudo tee -a /etc/hosts
     ```
 
     - Flush local DNS cache:

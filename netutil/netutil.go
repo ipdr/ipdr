@@ -3,9 +3,39 @@ package netutil
 import (
 	"errors"
 	"net"
+	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 )
+
+// Default http client with timeout
+// https://golang.org/pkg/net/http/#pkg-examples
+// Clients and Transports are safe for concurrent use by multiple goroutines.
+var defaultClient = &http.Client{
+	Timeout:   time.Second * 10,
+	Transport: defaultTransport,
+}
+
+// https://golang.org/src/net/http/transport.go
+var defaultTransport = &http.Transport{
+	Proxy: http.ProxyFromEnvironment,
+	DialContext: (&net.Dialer{
+		Timeout:   10 * time.Second,
+		KeepAlive: 10 * time.Second,
+		DualStack: true,
+	}).DialContext,
+	ForceAttemptHTTP2:     true,
+	MaxIdleConns:          10,
+	IdleConnTimeout:       10 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ExpectContinueTimeout: 1 * time.Second,
+}
+
+// Get issues a GET to the specified URL - a drop-in replacement for http.Get with timeouts.
+func Get(url string) (resp *http.Response, err error) {
+	return defaultClient.Get(url)
+}
 
 // GetFreePort asks the kernel for a free open port that is ready to use.
 func GetFreePort() (int, error) {

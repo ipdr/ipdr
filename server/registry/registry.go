@@ -176,6 +176,8 @@ func (r *registry) resolveCID(repo, reference string) (string, error) {
 }
 
 func (r *registry) resolve(repo, reference string) []string {
+	r.log.Printf("resolving CID: %s:%s", repo, reference)
+
 	// local/cached
 	if cid, ok := r.cids.Get(repo, reference); ok {
 		return []string{cid}
