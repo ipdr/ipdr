@@ -279,7 +279,7 @@ make test
 
 - Q: How do I get `docker.local` to work?
 
-  - A: Make sure to add `127.0.0.1  docker.local` to `/etc/hosts`
+  - A: Make sure to add `127.0.0.1  docker.local` to `/etc/hosts`. Optionally, you may use `local.ipdr.io` which resolves to `127.0.0.1`
 
 ## Contributing
 
