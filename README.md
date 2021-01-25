@@ -289,6 +289,10 @@ For contributions please create a new branch and submit a pull request for revie
 
 _Many thanks to [@qiangli](https://github.com/qiangli) and all the [contributors](https://github.com/miguelmota/ipdr/graphs/contributors) that made this package better._
 
+## Social
+
+- Discuss on [Discord](https://discord.gg/7GJwMjedjh)
+
 ## Resources
 
 - [Docker Registry HTTP API V2 Spec](https://docs.docker.com/registry/spec/api/)
