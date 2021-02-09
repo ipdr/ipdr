@@ -41,13 +41,13 @@ release:
 	goreleaser
 
 docker-build:
-	docker build -t miguelmota/ipdr .
+	docker build -t ipdr/ipdr .
 
 docker-start:
-	docker run miguelmota/ipdr server
+	docker run ipdr/ipdr server
 
 docker-push:
-	docker push miguelmota/ipdr:latest
+	docker push ipdr/ipdr:latest
 
 .PHONY: help
 help: Makefile
