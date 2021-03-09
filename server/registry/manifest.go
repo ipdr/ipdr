@@ -26,7 +26,7 @@ import (
 
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/types"
-	"github.com/miguelmota/ipdr/server/registry/image"
+	"github.com/ipdr/ipdr/server/registry/image"
 )
 
 type manifest struct {

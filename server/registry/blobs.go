@@ -27,7 +27,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/miguelmota/ipdr/netutil"
+	"github.com/ipdr/ipdr/netutil"
 )
 
 // Returns whether this url should be handled by the blob handler
@@ -170,6 +170,13 @@ func (b *blobs) handle(resp http.ResponseWriter, req *http.Request) *regError {
 		// TODO ipfsResp.ContentLength could be -1
 		// copy the whole body content - not desirable
 		body, err := ioutil.ReadAll(ipfsResp.Body)
+		if err != nil {
+			return &regError{
+				Status:  http.StatusNotFound,
+				Code:    "BLOB_UNKNOWN",
+				Message: err.Error(),
+			}
+		}
 		size := len(body)
 		resp.Header().Set("Content-Length", fmt.Sprint(size))
 		resp.Header().Set("Docker-Content-Digest", target)

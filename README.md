@@ -10,10 +10,10 @@
 
 > [IPFS](https://github.com/ipfs/go-ipfs)-backed [Docker](https://github.com/docker/docker) Registry
 
-[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/miguelmota/ipdr/master/LICENSE)
-[![CircleCI](https://circleci.com/gh/miguelmota/ipdr.svg?style=svg)](https://circleci.com/gh/miguelmota/ipdr)
-[![Go Report Card](https://goreportcard.com/badge/github.com/miguelmota/ipdr?)](https://goreportcard.com/report/github.com/miguelmota/ipdr)
-[![GoDoc](https://godoc.org/github.com/miguelmota/ipdr?status.svg)](https://godoc.org/github.com/miguelmota/ipdr)
+[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/ipdr/ipdr/master/LICENSE)
+[![CircleCI](https://circleci.com/gh/ipdr/ipdr.svg?style=svg)](https://circleci.com/gh/ipdr/ipdr)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ipdr/ipdr?)](https://goreportcard.com/report/github.com/ipdr/ipdr)
+[![GoDoc](https://godoc.org/github.com/ipdr/ipdr?status.svg)](https://godoc.org/github.com/ipdr/ipdr)
 [![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
@@ -43,14 +43,14 @@ High-level overview:
 - Install with [Go](https://golang.org/doc/install):
 
     ```bash
-    go get -u github.com/miguelmota/ipdr/cmd/ipdr
+    go get -u github.com/ipdr/ipdr/cmd/ipdr
     ```
 
-- Install from [release binaries](https://github.com/miguelmota/ipdr/releases):
+- Install from [release binaries](https://github.com/ipdr/ipdr/releases):
 
     ```bash
     # replace x.x.x with the latest version
-    wget https://github.com/miguelmota/ipdr/releases/download/x.x.x/ipdr_x.x.x_linux_amd64.tar.gz
+    wget https://github.com/ipdr/ipdr/releases/download/x.x.x/ipdr_x.x.x_linux_amd64.tar.gz
     tar -xvzf ipdr_x.x.x_linux_amd64.tar.gz ipdr
     ./ipdr --help
 
@@ -230,7 +230,7 @@ docker run "$REPO_TAG"
 $ ipdr --help
 
 The command-line interface for the InterPlanetary Docker Registry.
-More info: https://github.com/miguelmota/ipdr
+More info: https://github.com/ipdr/ipdr
 
 Usage:
   ipdr [flags]
@@ -287,7 +287,7 @@ Pull requests are welcome!
 
 For contributions please create a new branch and submit a pull request for review.
 
-_Many thanks to [@qiangli](https://github.com/qiangli) and all the [contributors](https://github.com/miguelmota/ipdr/graphs/contributors) that made this package better._
+_Many thanks to [@qiangli](https://github.com/qiangli) and all the [contributors](https://github.com/ipdr/ipdr/graphs/contributors) that made this package better._
 
 ## Social
 

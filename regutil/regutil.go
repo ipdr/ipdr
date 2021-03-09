@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/miguelmota/ipdr/netutil"
+	"github.com/ipdr/ipdr/netutil"
 
 	cid "github.com/ipfs/go-cid"
 	base58 "github.com/jbenet/go-base58"

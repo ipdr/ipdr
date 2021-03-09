@@ -5,8 +5,8 @@ import (
 	"net"
 	"net/http"
 
-	ipfs "github.com/miguelmota/ipdr/ipfs"
-	"github.com/miguelmota/ipdr/server/registry"
+	ipfs "github.com/ipdr/ipdr/ipfs"
+	"github.com/ipdr/ipdr/server/registry"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -44,7 +44,7 @@ type InfoResponse struct {
 	Problematic []string `json:"problematic"`
 }
 
-var projectURL = "https://github.com/miguelmota/ipdr"
+var projectURL = "https://github.com/ipdr/ipdr"
 
 // NewServer returns a new server instance
 func NewServer(config *Config) *Server {

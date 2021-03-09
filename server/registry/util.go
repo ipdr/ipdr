@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/miguelmota/ipdr/netutil"
-	"github.com/miguelmota/ipdr/regutil"
+	"github.com/ipdr/ipdr/netutil"
+	"github.com/ipdr/ipdr/regutil"
 )
 
 func getContent(gw string, cid string, s []string) ([]byte, error) {

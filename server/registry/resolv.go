@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/miguelmota/ipdr/ipfs"
+	"github.com/ipdr/ipdr/ipfs"
 )
 
 // CIDResolver is the interface that maps container image repo[:reference] to content ID.

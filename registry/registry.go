@@ -18,10 +18,10 @@ import (
 	"strings"
 	"time"
 
-	docker "github.com/miguelmota/ipdr/docker"
-	ipfs "github.com/miguelmota/ipdr/ipfs"
-	netutil "github.com/miguelmota/ipdr/netutil"
-	server "github.com/miguelmota/ipdr/server"
+	docker "github.com/ipdr/ipdr/docker"
+	ipfs "github.com/ipdr/ipdr/ipfs"
+	netutil "github.com/ipdr/ipdr/netutil"
+	server "github.com/ipdr/ipdr/server"
 	log "github.com/sirupsen/logrus"
 )
 

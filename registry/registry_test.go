@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	docker "github.com/miguelmota/ipdr/docker"
+	docker "github.com/ipdr/ipdr/docker"
 )
 
 var (

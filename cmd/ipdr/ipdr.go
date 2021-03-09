@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 
 	color "github.com/fatih/color"
-	registry "github.com/miguelmota/ipdr/registry"
-	regutil "github.com/miguelmota/ipdr/regutil"
-	"github.com/miguelmota/ipdr/server"
+	registry "github.com/ipdr/ipdr/registry"
+	regutil "github.com/ipdr/ipdr/regutil"
+	"github.com/ipdr/ipdr/server"
 	log "github.com/sirupsen/logrus"
 	cobra "github.com/spf13/cobra"
 )
@@ -46,7 +46,7 @@ func main() {
 		Use:   "ipdr",
 		Short: "InterPlanetary Docker Registry",
 		Long: `The command-line interface for the InterPlanetary Docker Registry.
-More info: https://github.com/miguelmota/ipdr`,
+More info: https://github.com/ipdr/ipdr`,
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},

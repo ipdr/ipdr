@@ -1,21 +1,23 @@
 package multihash
 
 import (
+	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha512"
 	"errors"
 	"fmt"
 
-	keccak "github.com/gxed/hashland/keccakpg"
-	murmur3 "github.com/gxed/hashland/murmur3"
 	blake2b "github.com/minio/blake2b-simd"
 	sha256 "github.com/minio/sha256-simd"
+	murmur3 "github.com/spaolacci/murmur3"
 	blake2s "golang.org/x/crypto/blake2s"
 	sha3 "golang.org/x/crypto/sha3"
 )
 
 // ErrSumNotSupported is returned when the Sum function code is not implemented
 var ErrSumNotSupported = errors.New("Function not implemented. Complain to lib maintainer.")
+
+var ErrLenTooLarge = errors.New("requested length was too large for digest")
 
 // HashFunc is a hash function that hashes data into digest.
 //
@@ -53,6 +55,10 @@ func Sum(data []byte, code uint64, length int) (Multihash, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(d) < length {
+		return nil, ErrLenTooLarge
+	}
+
 	if length >= 0 {
 		d = d[:length]
 	}
@@ -98,6 +104,11 @@ func sumSHA256(data []byte, length int) ([]byte, error) {
 	return a[0:32], nil
 }
 
+func sumMD5(data []byte, length int) ([]byte, error) {
+	a := md5.Sum(data)
+	return a[0:md5.Size], nil
+}
+
 func sumDoubleSHA256(data []byte, length int) ([]byte, error) {
 	val, _ := sumSHA256(data, len(data))
 	return sumSHA256(val, len(val))
@@ -107,27 +118,14 @@ func sumSHA512(data []byte, length int) ([]byte, error) {
 	a := sha512.Sum512(data)
 	return a[0:64], nil
 }
-
-func sumKeccak224(data []byte, length int) ([]byte, error) {
-	h := keccak.New224()
-	h.Write(data)
-	return h.Sum(nil), nil
-}
-
 func sumKeccak256(data []byte, length int) ([]byte, error) {
-	h := keccak.New256()
-	h.Write(data)
-	return h.Sum(nil), nil
-}
-
-func sumKeccak384(data []byte, length int) ([]byte, error) {
-	h := keccak.New384()
+	h := sha3.NewLegacyKeccak256()
 	h.Write(data)
 	return h.Sum(nil), nil
 }
 
 func sumKeccak512(data []byte, length int) ([]byte, error) {
-	h := keccak.New512()
+	h := sha3.NewLegacyKeccak512()
 	h.Write(data)
 	return h.Sum(nil), nil
 }
@@ -175,18 +173,17 @@ func sumSHA3_224(data []byte, length int) ([]byte, error) {
 }
 
 func registerStdlibHashFuncs() {
-	RegisterHashFunc(ID, sumID)
+	RegisterHashFunc(IDENTITY, sumID)
 	RegisterHashFunc(SHA1, sumSHA1)
 	RegisterHashFunc(SHA2_512, sumSHA512)
+	RegisterHashFunc(MD5, sumMD5)
 }
 
 func registerNonStdlibHashFuncs() {
 	RegisterHashFunc(SHA2_256, sumSHA256)
 	RegisterHashFunc(DBL_SHA2_256, sumDoubleSHA256)
 
-	RegisterHashFunc(KECCAK_224, sumKeccak224)
 	RegisterHashFunc(KECCAK_256, sumKeccak256)
-	RegisterHashFunc(KECCAK_384, sumKeccak384)
 	RegisterHashFunc(KECCAK_512, sumKeccak512)
 
 	RegisterHashFunc(SHA3_224, sumSHA3_224)
@@ -194,7 +191,7 @@ func registerNonStdlibHashFuncs() {
 	RegisterHashFunc(SHA3_384, sumSHA3_384)
 	RegisterHashFunc(SHA3_512, sumSHA3_512)
 
-	RegisterHashFunc(MURMUR3, sumMURMUR3)
+	RegisterHashFunc(MURMUR3_128, sumMURMUR3)
 
 	RegisterHashFunc(SHAKE_128, sumSHAKE128)
 	RegisterHashFunc(SHAKE_256, sumSHAKE256)
