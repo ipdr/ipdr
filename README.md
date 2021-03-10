@@ -175,7 +175,7 @@ High-level overview:
     $ docker tag docker.local:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi example/helloworld:latest
     ```
 
-- You can also pull the image using `docker pull`:
+- We can also pull the image using `docker pull`:
     - First run the IPDR server in a seperate terminal:
 
         ```bash
@@ -191,7 +191,7 @@ High-level overview:
         ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
         ```
 
-    - Now you can `docker pull` the image from IPFS:
+    - Now we can `docker pull` the image from IPFS:
 
         ```bash
         $ docker pull docker.local:5000/ciqjjwaeoszdgcaasxmlhjuqnhbctgwijqz64w564lrzeyjezcvbj4y
@@ -247,6 +247,81 @@ Flags:
   -h, --help   help for ipdr
 
 Use "ipdr [command] --help" for more information about a command.
+```
+
+## IPNS
+
+An example of using IPNS to resolve image tag names.
+
+1. First start local server:
+
+```bash
+ipdr server -p 5000
+```
+
+2. Tag the image:
+
+```bash
+docker pull hello-world
+docker tag hello-world docker.local:5000/hello-world
+```
+
+3. Push to local registry:
+
+```bash
+docker push --quiet docker.local:5000/hello-world
+```
+
+CID mappings live under `~/.ipdr`
+
+```bash
+$ tree ~/.ipdr/
+/home/username/.ipdr/
+└── cids
+    └── hello-world
+        └── latest
+```
+
+4. Add cids directory to IPFS:
+
+```bash
+$ ipfs add -r ~/.ipdr/cids/ --quieter
+QmVtjwa3kdFJHce2wnFuygaCHdSPXraBd4FRSEZKjqZWQp
+```
+
+5. Set `_dnslink` TXT record on the domain to point to the directory IPFS hash:
+
+```
+dnslink=/ipfs/QmVtjwa3kdFJHce2wnFuygaCHdSPXraBd4FRSEZKjqZWQp
+```
+
+6. Verify DNS changes:
+
+```bash
+$ dig _dnslink.example.com -t TXT +short
+"dnslink=/ipfs/QmVtjwa3kdFJHce2wnFuygaCHdSPXraBd4FRSEZKjqZWQp"
+```
+
+7. Re-run server, now with domain as resolver:
+
+```bash
+$ ipdr server --cid-resolver=example.com
+```
+
+8. Now we can run ipdr dig to get CID using repo tag name!
+
+```bash
+$ ipdr dig hello-world:latest
+bafybeiakvswzlopeu573372p5xry47tkc2hhcg5q5rulmbfrnkecrbnt3y
+```
+
+Note: if nothing is returned, then make sure the IPFS gateway is correct.
+
+9. Next pull and the docker image from IPFS using the resolved CID formatted for docker:
+
+```bash
+docker pull docker.local:5000/bafybeiakvswzlopeu573372p5xry47tkc2hhcg5q5rulmbfrnkecrbnt3y
+docker run docker.local:5000/bafybeiakvswzlopeu573372p5xry47tkc2hhcg5q5rulmbfrnkecrbnt3y
 ```
 
 ## Test
