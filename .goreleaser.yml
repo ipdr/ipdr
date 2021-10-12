@@ -1,7 +1,6 @@
 builds:
   - main: ./cmd/ipdr/ipdr.go
     goos:
-      - windows
       - darwin
       - linux
     goarch:
