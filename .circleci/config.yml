@@ -8,7 +8,7 @@ jobs:
     machine:
       image: *ipdr-build-image
 
-    working_directory: /home/circleci/.go_workspace/src/github.com/miguelmota/ipdr
+    working_directory: /home/circleci/.go_workspace/src/github.com/ipdr/ipdr
     steps:
       - run:
           name: Install Golang
