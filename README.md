@@ -376,4 +376,6 @@ _Many thanks to [@qiangli](https://github.com/qiangli) and all the [contributors
 
 ## License
 
-[MIT](LICENSE)
+Released under the [MIT](./LICENSE) license.
+
+© [Miguel Mota](https://github.com/miguelmota)
