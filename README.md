@@ -147,7 +147,7 @@ High-level overview:
 - Use IPDR CLI to pull from IPFS:
 
     ```bash
-    $ ipdr pull /ipfs/QmagW4H1uE5rkm8A6iVS8WuiyjcWQzqXRHbM3KuUfzrCup
+    $ ipdr pull QmagW4H1uE5rkm8A6iVS8WuiyjcWQzqXRHbM3KuUfzrCup
 
     INFO[0000] [registry/server] port 5000
     INFO[0000] [registry] attempting to pull docker.local:5000/ciqmw4mig2uwaygddjlutoywq43udutvdmuxkcxvetsjp2mjdde27wi
