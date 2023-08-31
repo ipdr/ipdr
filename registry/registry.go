@@ -384,8 +384,8 @@ func ipfsShellCmd(cmdStr string) (string, string, error) {
 		return "", "", err
 	}
 
-	outstr := strings.TrimSpace(string(stdoutBuf.Bytes()))
-	errstr := strings.TrimSpace(string(stderrBuf.Bytes()))
+	outstr := strings.TrimSpace(stdoutBuf.String())
+	errstr := strings.TrimSpace(stderrBuf.String())
 
 	return outstr, errstr, nil
 }
