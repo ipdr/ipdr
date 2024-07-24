@@ -101,6 +101,12 @@ High-level overview:
           sudo systemd-resolve --flush-caches
           ```
 
+      - on Ubuntu 22+:
+
+          ```bash
+          sudo resolvectl flush-caches
+          ```
+
 ### Example flow
 
 - Create `Dockerfile`:
